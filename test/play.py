@@ -68,6 +68,23 @@ async def main():
     # all generators over many days: correct answer unique and 4 opts
     bad=await pg.evaluate("""()=>{let bad=[];for(let i=0;i<400;i++){const d='2027-'+String(1+i%12).padStart(2,'0')+'-'+String(1+i%28).padStart(2,'0')+'x'+i;dailyQs(d).forEach(g=>{if(g.o.length!==4||new Set(g.o).size!==4||g.a<0)bad.push(g.q)})}return bad.slice(0,5)}""")
     print('daily bad',bad)
+    # 第四章：直接把一到三章蓋完
+    await pg.evaluate('''()=>{BD.filter(b=>b[1]<=3).forEach(b=>{save.don[b[0]]=Object.assign({},b[4])});save.inv.sal=2;save.inv.anhyd=2;persist();render()}''')
+    print('ch',await pg.evaluate('curCh()'))
+    await pg.click('[data-tab=lab]'); await pg.click('[data-v=aspirin]'); await pg.wait_for_timeout(100)
+    await pg.screenshot(path='/tmp/shots/20_aspirin.png')
+    await pg.click('[data-a=close]')
+    await pg.click('[data-v=sapon]'); await pg.wait_for_timeout(100); await pg.screenshot(path='/tmp/shots/21_sapon.png')
+    await pg.click('[data-a=close]')
+    # 大量採集，測適性出題
+    await pg.click('[data-tab=gather]')
+    for k in range(40):
+      await pg.click('.gl [data-a=gat]')
+      await pg.click('[data-a=gans][data-v="%d"]'%(k%4))
+      if k==5: await pg.screenshot(path='/tmp/shots/22_gq.png')
+      await pg.click('#qfb [data-a=close]')
+    await pg.click('[data-tab=book]'); await pg.screenshot(path='/tmp/shots/23_book.png',full_page=True)
+    await pg.click('[data-tab=town]'); await pg.screenshot(path='/tmp/shots/24_town4.png',full_page=True)
     print('errors',errs)
     await b.close()
 asyncio.run(main())
