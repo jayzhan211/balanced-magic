@@ -895,6 +895,16 @@ function prologue(){
  <button class="btn gold" data-a="start">開始</button>`);
  $('modal').querySelector('[data-a=start]').onclick=()=>{save.intro=true;persist();closeM();openHelp()};
 }
+// 這台裝置沒有存檔時，先等雲端讀完（最多 8 秒）再決定要不要顯示開場，避免以為進度不見
+function bootIntro(){
+ if(save.intro)return;
+ const cloud=window.__FB_CONFIG&&window.firebase&&!(TEST&&!TCLOUD);if(!cloud)return prologue();
+ modal(`<h3>☁️ 正在找回你的工房…</h3><p class="sub">第一次在這個瀏覽器打開，要先從雲端讀取進度，大約一兩秒。</p>`);
+ const t0=Date.now(),iv=setInterval(()=>{
+  if(!(SY.ready||SY.st==='err'||SY.st==='off'||Date.now()-t0>8000))return;clearInterval(iv);
+  closeM();if(!save.intro)prologue();
+ },200);
+}
 // 隱藏開關：連點標題 5 下切換身分（測試用）
 let tapN=0,tapT=0;
 $('title').onclick=()=>{const t=Date.now();tapN=t-tapT<700?tapN+1:1;tapT=t;if(tapN>=5){tapN=0;accountMenu()}};
@@ -919,5 +929,5 @@ async function googleLogout(){try{await pushMine();await firebase.auth().signOut
 // ===================== 啟動 =====================
 save.prevVisit=save.lastVisit||0;save.lastVisit=Date.now();_persist();
 snapLv();claimWork();
-render();prologue();
+render();bootIntro();
 setTimeout(initSync,0);
