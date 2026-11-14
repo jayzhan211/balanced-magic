@@ -106,6 +106,10 @@ async function initSync(){
  }catch(e){console.warn('sync init',e);setSt('err',e&&e.message||e)}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){save.lastVisit=Date.now();_persist();pushMine()}});
+// 自動重試：失敗或斷網時，每 20 秒、恢復連線、回到畫面時都會自動再上傳一次
+setInterval(()=>{if(SY.on&&(SY.st==='err'||SY.st==='push'))pushMine()},20000);
+addEventListener('online',()=>{if(SY.on)pushMine()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&SY.on){SY.last='';pushMine()}});
 addEventListener('pagehide',()=>{save.lastVisit=Date.now();_persist();pushMine()});
 
 // ---- 送禮 ----
@@ -705,7 +709,7 @@ function openHelp(){
 
 
 
-function syncPanel(){const L={off:'📴 單機模式：沒有連上雲端（網路或 Firebase 沒載入），進度只存在這台裝置。',conn:'⏳ 正在連線……',ok:'☁️ 已同步',push:'⏳ 有新進度，正在上傳……',err:'⚠️ 同步失敗'};
+function syncPanel(){const L={off:'📴 單機模式：沒有連上雲端（網路或 Firebase 沒載入），進度只存在這台裝置。',conn:'⏳ 正在連線……',ok:'☁️ 已同步。同步是自動的：每次有進度約 2 秒後上傳，對方的進度會即時傳過來。',push:'⏳ 有新進度，正在上傳……',err:'⚠️ 上傳失敗，會自動每 20 秒重試，網路恢復時也會自動補傳。'};
  modal(`<h3>同步狀態</h3><div class="ex">${L[SY.st]||L.off}${SY.st==='err'?`<br><span class="small">${esc(SY.err)}</span>`:''}</div>
  <div class="small">${SY.okAt?`上次成功上傳：${ago(SY.okAt)}`:'還沒上傳過'}<br>${P?`${paN()}最後一次存檔：${P.ts?ago(P.ts):'—'}`:`還沒收到${paN()}的資料（${paN()}可能還沒開過遊戲）`}${TEST?`<br>🧪 測試模式：${TCLOUD?'連著「雲端測試空間」，不會碰到真實存檔':'單機，不連雲端'}`:''}</div>
  ${SY.on?'<button class="btn" data-a="syncnow">立刻上傳一次</button>':''}<button class="btn ghost" data-a="close">關閉</button>`)}
