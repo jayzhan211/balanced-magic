@@ -1182,7 +1182,10 @@ function pushEv(e){e.t=Date.now();save.ev.unshift(e);save.ev=save.ev.slice(0,24)
 
 // ===================== 夥伴（Firebase 同步；沒有 Firebase 時單機也能玩） =====================
 let P=null; // 夥伴的公開資料
-const SY={on:false,db:null,timer:null,last:'',st:'off',err:''};
+const SY={on:false,db:null,timer:null,last:'',st:'off',err:'',needLogin:false,user:null};
+// 傑用 Google 登入（同單字花園）：彣不用登入，打開就是彣
+const J_UID=''; // 傑第一次登入後，把帳號 UID 填在這裡＆ firestore.rules，就只認這個帳號
+const isJUser=u=>!!u&&!u.isAnonymous&&(!J_UID||u.uid===J_UID);
 const DOCP=()=>TCLOUD?PAIR+'T':PAIR;
 function setSt(x,e){SY.st=x;if(e)SY.err=String(e).slice(0,120);const el=$('syncst');if(el)el.innerHTML=stIcon()}
 function stIcon(){return{off:'📴',conn:'⏳',ok:'☁️',push:'⏳',err:'⚠️'}[SY.st]||'📴'}
@@ -1213,7 +1216,7 @@ function pub(){
 }
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
- if(!SY.on)return;clearTimeout(SY.timer);
+ if(!SY.on)return;clearTimeout(SY.timer);if(SY.needLogin){setSt('err','傑還沒用 Google 登入，進度不會上傳');return}
  const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last){setSt('ok');return}
  try{await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key;SY.okAt=Date.now();setSt('ok')}catch(e){console.warn('sync',e);setSt('err',e&&e.message||e)}
 }
@@ -1234,10 +1237,18 @@ function onPartner(raw){
 async function initSync(){
  if(TEST&&!TCLOUD){try{const fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null');if(fp){P=sanitize(fp);snapLv();render()}}catch(e){}return}
  const cfg=window.__FB_CONFIG;if(!cfg||!window.firebase){setSt('off');return}setSt('conn');
- try{firebase.initializeApp(cfg);await firebase.auth().signInAnonymously();SY.db=firebase.firestore();
+ try{firebase.initializeApp(cfg);const A=firebase.auth();
+  try{await A.getRedirectResult()}catch(e){console.warn('redirect',e)}
+  let u=await new Promise(res=>{const un=A.onAuthStateChanged(x=>{un();res(x)})});
+  if(u&&!u.isAnonymous&&!isJUser(u)){await A.signOut();u=null;setTimeout(()=>toast('這個 Google 帳號不是傑的，已登出'),800)}
+  if(!u){await A.signInAnonymously();u=A.currentUser}
+  SY.user=u;
+  if(isJUser(u)&&ROLE!=='j'&&!TCLOUD){try{localStorage.setItem('mb_role','j')}catch(e){}location.reload();return}
+  SY.needLogin=ROLE==='j'&&!isJUser(u)&&!TCLOUD;
+  SY.db=firebase.firestore();
   await restore();SY.on=true;
   SY.db.doc(`balance/${DOCP()}/players/${PA()}`).onSnapshot(s=>{SY.pAt=Date.now();onPartner(s.exists?s.data():null)},e=>{console.warn('sync',e);setSt('err',e&&e.message||e)});
-  pushMine();
+  pushMine();render();
  }catch(e){console.warn('sync init',e);setSt('err',e&&e.message||e)}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){save.lastVisit=Date.now();_persist();pushMine()}});
@@ -1311,7 +1322,7 @@ function renderHead(){
 }
 function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='nbk'){setTimeout(()=>{if(nbNew()){save.nbSeen=Date.now();_persist();renderNav()}},800)}
  if(TAB==='acad'){save.tutSeen=save.tutSeen||{};if(!save.tutSeen.acad){save.tutSeen.acad=1;_persist()}}
- const h=(['gather','town','acad','lab'].includes(TAB)?tutCard():'')+{town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
+ const h=(SY.needLogin?`<div class="banner" data-a="glogin" style="cursor:pointer;background:#fff3e6;border-color:#ffd59e">🔑 <b>這台裝置還沒登入，傑的進度不會存到雲端。點這裡用 Google 登入</b></div>`:'')+(['gather','town','acad','lab'].includes(TAB)?tutCard():'')+{town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
  $('foot').innerHTML=TAB==='book'?`<button data-a="help" style="margin-right:8px">📖 玩法介紹</button><button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
 
 // ---- 城鎮 ----
@@ -1835,6 +1846,7 @@ function openHelp(){
  ・配平過一次之後，就可以直接照比例量產。<br>
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
+ <div class="sec">帳號</div><div class="muted">${NM.her}打開就是${NM.her}，不用登入。${NM.j}要在自己的裝置連點標題 5 下，用 Google 登入一次。</div>
  <div class="sec">每日目標</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
@@ -1903,6 +1915,8 @@ function act(a,v,el){
  switch(a){
   case'close':return closeM();
   case'help':return openHelp();
+  case'glogin':return googleLogin();
+  case'glogout':return googleLogout();
   case'lvnext':closeM();return setTimeout(showLvQ,200);
   case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
@@ -1969,9 +1983,24 @@ function prologue(){
 }
 // 隱藏開關：連點標題 5 下切換身分（測試用）
 let tapN=0,tapT=0;
-$('title').onclick=()=>{const t=Date.now();tapN=t-tapT<700?tapN+1:1;tapT=t;if(tapN>=5){tapN=0;
- modal(`<h3>👀 切換視角</h3><div class="muted">目前是：<b>${meN()}</b>。兩個視角的存檔分開保存。</div><button class="btn" data-a="role" data-v="j">傑（北方礦山）</button><button class="btn" data-a="role" data-v="her">彣（南方海岸）</button><button class="btn gold" data-a="dbg">🧪 ${TEST?'測試工具':'進入測試模式'}</button><button class="btn ghost" data-a="close">取消</button>`);
- $('modal').querySelectorAll('[data-a=role]').forEach(b=>b.onclick=()=>{save.lastVisit=Date.now();_persist();pushMine();try{localStorage.setItem('mb_role',b.dataset.v)}catch(e){}location.reload()})}};
+$('title').onclick=()=>{const t=Date.now();tapN=t-tapT<700?tapN+1:1;tapT=t;if(tapN>=5){tapN=0;accountMenu()}};
+function accountMenu(){const u=SY.user,gj=isJUser(u);
+ modal(`<h3>🔑 帳號</h3><div class="muted">這台裝置目前是：<b>${meN()}</b>${gj?`<br><span class="small">已用 Google 登入（${esc(u.displayName||'傑')}）<br>UID：<code style="user-select:all">${esc(u.uid)}</code>${J_UID?'':'（傳給 Claude，鎖定只有這個帳號能當傑）'}</span>`:''}</div>
+ ${TEST?'':gj?`<button class="btn ghost" data-a="glogout">登出（這台裝置會變回彣）</button>`:`<button class="btn gold" data-a="glogin">我是傑，用 Google 登入</button><div class="small" style="text-align:center">登入之後，任何裝置都會認得你是傑。彣不用登入。</div>`}
+ ${TEST?`<div class="sec">🧪 測試中可以自由切換身分</div><button class="btn" data-a="role" data-v="j">傑（北方礦山）</button><button class="btn" data-a="role" data-v="her">彣（南方海岸）</button>`:''}
+ <button class="btn" data-a="dbg">🧪 ${TEST?'測試工具':'測試模式'}</button><button class="btn ghost" data-a="close">取消</button>`);
+ $('modal').querySelectorAll('[data-a=role]').forEach(b=>b.onclick=()=>{save.lastVisit=Date.now();_persist();pushMine();try{localStorage.setItem('mb_role',b.dataset.v)}catch(e){}location.reload()})}
+async function googleLogin(){
+ if(!window.firebase||!firebase.apps.length)return toast('連上網路才能登入');
+ const G=new firebase.auth.GoogleAuthProvider();G.setCustomParameters({prompt:'select_account'});
+ try{const r=await firebase.auth().signInWithPopup(G);
+  if(!isJUser(r.user)){await firebase.auth().signOut();await firebase.auth().signInAnonymously();return toast('這個 Google 帳號不是傑的')}
+  try{localStorage.setItem('mb_role','j')}catch(e){}_persist();location.reload();
+ }catch(e){
+  if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')){try{localStorage.setItem('mb_role','j')}catch(_){}return firebase.auth().signInWithRedirect(G)}
+  if(e&&e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')toast('登入失敗：'+(e.code||e.message));
+ }}
+async function googleLogout(){try{await pushMine();await firebase.auth().signOut()}catch(e){}try{localStorage.setItem('mb_role','her')}catch(e){}location.reload()}
 
 // ===================== 啟動 =====================
 save.prevVisit=save.lastVisit||0;save.lastVisit=Date.now();_persist();

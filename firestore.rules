@@ -1,11 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 正式存檔（7NagGHeso22QC5bBCStwkiGO）與雲端測試空間（7NagGHeso22QC5bBCStwkiGOT）
     match /balance/{pair}/players/{player} {
       allow read: if request.auth != null && (pair == '7NagGHeso22QC5bBCStwkiGO' || pair == '7NagGHeso22QC5bBCStwkiGOT');
-      allow write: if request.auth != null && (pair == '7NagGHeso22QC5bBCStwkiGO' || pair == '7NagGHeso22QC5bBCStwkiGOT')
-                   && player in ['j', 'her']
+
+      // 傑：只有用 Google 登入才能寫（拿到 UID 後改成 request.auth.uid == '傑的UID'）
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGO' && player == 'j'
+                   && request.auth != null
+                   && request.auth.token.firebase.sign_in_provider == 'google.com'
+                   && request.resource.data.keys().size() < 40;
+
+      // 彣：不用登入（匿名）就能寫
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGO' && player == 'her'
+                   && request.auth != null
+                   && request.resource.data.keys().size() < 40;
+
+      // 雲端測試空間：兩個身分都不用登入
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGOT' && player in ['j', 'her']
+                   && request.auth != null
                    && request.resource.data.keys().size() < 40;
     }
   }
