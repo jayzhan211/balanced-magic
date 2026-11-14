@@ -17,7 +17,8 @@ const shuffle=(a,r=Math.random)=>{a=a.slice();for(let i=a.length-1;i>0;i--){cons
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600)}
 function confetti(){const e=['✨','⚗️','🧪','🌟','💧','🔥'];for(let i=0;i<18;i++){const s=document.createElement('div');s.className='conf';s.textContent=e[i%e.length];s.style.left=Math.random()*100+'vw';s.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),3000)}}
 function ago(ts){const m=Math.round((Date.now()-ts)/6e4);if(m<1)return'剛剛';if(m<60)return m+' 分鐘前';const h=Math.round(m/60);if(h<24)return h+' 小時前';return Math.round(h/24)+' 天前'}
-function todayStr(off=0){const d=new Date(Date.now()+8*36e5-off*864e5);return d.toISOString().slice(0,10)}
+let TEST=false,TOFF=0;try{TEST=localStorage.getItem('mb_test')==='1';TOFF=TEST?+(localStorage.getItem('mb_toff')||0):0}catch(e){}
+function todayStr(off=0){const d=new Date(Date.now()+8*36e5+(TOFF-off)*864e5);return d.toISOString().slice(0,10)}
 const RXM={};RX.forEach(r=>RXM[r[0]]=r);
 const BDM={};BD.forEach(b=>BDM[b[0]]=b);
 
@@ -27,7 +28,7 @@ const HOME={j:'n',her:'s'};
 let ROLE='her';try{ROLE=localStorage.getItem('mb_role')==='j'?'j':'her'}catch(e){}
 const ME=()=>ROLE, PA=()=>ROLE==='j'?'her':'j';
 const meN=()=>NM[ME()], paN=()=>NM[PA()];
-const KEY=()=>'mb_save_'+ROLE;
+const KEY=()=>(TEST?'mb_test_':'mb_save_')+ROLE;
 
 // ===================== 存檔 =====================
 function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
@@ -89,6 +90,7 @@ function onPartner(raw){
  if(!$('modal').classList.contains('show'))render();else renderNav();
 }
 async function initSync(){
+ if(TEST){try{const fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null');if(fp){P=sanitize(fp);snapLv();render()}}catch(e){}return}
  const cfg=window.__FB_CONFIG;if(!cfg||!window.firebase)return;
  try{firebase.initializeApp(cfg);await firebase.auth().signInAnonymously();SY.db=firebase.firestore();
   await restore();SY.on=true;
@@ -155,10 +157,10 @@ function renderNav(){
  $('nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();scrollTo(0,0)});
 }
 function renderHead(){
- $('subt').textContent=`${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
+ $('subt').textContent=`${TEST?'🧪測試中 · ':''}${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
  const T=town();$('hstats').innerHTML=`<button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
 }
-function render(){renderHead();renderNav();if(TAB==='acad'){const nr=newReplies();setTimeout(()=>{if(nr.length){nr.forEach(a=>save.askSeen[a.id]=1);_persist();renderNav()}},50)}
+function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='acad'){const nr=newReplies();setTimeout(()=>{if(nr.length){nr.forEach(a=>save.askSeen[a.id]=1);_persist();renderNav()}},50)}
  const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook}[TAB]();$('main').innerHTML=h;bind();
  $('foot').innerHTML=TAB==='book'?`<button data-a="help" style="margin-right:8px">📖 玩法介紹</button><button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
 
@@ -553,6 +555,47 @@ function openHelp(){
  <button class="btn gold" data-a="close">開始玩</button>`);
 }
 
+
+// ===================== 🧪 測試模式（獨立存檔、不同步雲端） =====================
+function dbgPanel(){
+ if(!TEST){modal(`<h3>🧪 測試模式</h3><div class="muted">進入後會用<b>另一份獨立的存檔</b>，不連雲端、不影響你和${paN()}的真實進度。可以快轉學徒、蓋房子、模擬${paN()}的動作、跳到隔天，看看之後會長怎樣。離開測試模式就回到真實存檔。</div><button class="btn gold" data-a="dbgon">進入測試模式</button><button class="btn ghost" data-a="close">取消</button>`);return}
+ const B=(a,t,v='')=>`<button class="btn" style="margin-top:6px;padding:9px" data-a="${a}" data-v="${v}">${t}</button>`;
+ modal(`<h3>🧪 測試工具</h3><div class="small">目前：${meN()} 的測試存檔 · 日期 ${todayStr()}${TOFF?`（快轉 ${TOFF} 天）`:''}</div>
+ <div class="sec">學徒</div>${B('d_xp','每位學徒 +5 題答對（升一級左右）',5)}${B('d_xp','每位學徒 +30 題答對',30)}<div class="inv" style="margin-top:6px">${APP.map(a=>`<span class="chip" data-a="d_xp1" data-v="${a.id}">${a.ic}${a.nm} +10</span>`).join('')}</div>
+ <div class="sec">材料與工房</div>${B('d_raw','原料各 +20')}${B('d_all','所有物質各 +10')}${B('d_solve','所有反應直接算已配平')}
+ <div class="sec">小鎮</div>${B('d_b1','蓋好下一棟能蓋的')}${B('d_bu','蓋好所有已解鎖的')}${B('d_ball','全部 30 棟直接蓋好（無視鎖）')}
+ <div class="sec">模擬${paN()}</div>${B('d_p','產生${paN()}的進度（答題、捐建築、今日答對 8 題）')}${B('d_pask','${paN()}寄來一題請教')}${B('d_prep','${paN()}回覆我所有的請教')}
+ <div class="sec">時間</div>${B('d_day','跳到明天（測每日目標、出師寄材料）')}
+ <div class="sec">其他</div>${B('d_wipe','清空測試存檔，從頭開始')}<button class="btn gold" data-a="dbgoff">離開測試模式（回到真實存檔）</button><button class="btn ghost" data-a="close">關閉</button>`);
+}
+function dbgFakeP(){let fp=null;try{fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null')}catch(e){}return fp||{uc:{},ask:[],rep2:{},pd:['',0],don:{},ev:[],out:[],claimed:[],ts:Date.now()}}
+function dbgSaveP(fp){fp.ts=Date.now();try{localStorage.setItem('mb_testP_'+ROLE,JSON.stringify(fp))}catch(e){}const prev=P;P=sanitize(fp);if(!prev)snapLv();else checkLv(false);checkGoal()}
+function dbgBuild(b){save.don[b[0]]=Object.assign({},b[4])}
+function dbg(a,v){
+ const done=t=>{persist();checkLv();checkGoal();claimWork();toast('🧪 '+t);dbgPanel();renderHead()};
+ switch(a){
+  case'dbgon':try{localStorage.setItem('mb_test','1');localStorage.setItem('mb_toff','0')}catch(e){}return location.reload();
+  case'dbgoff':try{localStorage.removeItem('mb_test');localStorage.removeItem('mb_toff')}catch(e){}return location.reload();
+  case'd_xp':APP.forEach(ap=>{for(let i=0;i<+v;i++){const u=ap.u[i%ap.u.length];const x=save.us[u]||[0,0];x[0]++;save.us[u]=x}});return done(`每位學徒 +${v}`);
+  case'd_xp1':{const ap=APPM[v];for(let i=0;i<10;i++){const u=ap.u[i%ap.u.length];const x=save.us[u]||[0,0];x[0]++;save.us[u]=x}return done(`${ap.nm} +10`)}
+  case'd_raw':Object.keys(IT).filter(isRaw).forEach(i=>addInv(i,20));return done('原料各 +20');
+  case'd_all':Object.keys(IT).forEach(i=>addInv(i,10));return done('所有物質各 +10');
+  case'd_solve':RX.forEach(r=>save.solved[r[0]]=1);return done('全部已配平');
+  case'd_b1':{const b=BD.find(b=>!bDone(b[0])&&unlocked(b[0]));if(!b)return toast('沒有能蓋的了（先升學徒）');dbgBuild(b);pushEv({k:'build',b:b[0]});return done(`${b[3]} 落成`)}
+  case'd_bu':BD.filter(b=>!bDone(b[0])&&unlocked(b[0])).forEach(dbgBuild);return done('已解鎖的全部蓋好');
+  case'd_ball':BD.forEach(dbgBuild);return done('30 棟全部蓋好');
+  case'd_p':{const fp=dbgFakeP();ALLU().forEach(u=>fp.uc[u]=(fp.uc[u]||0)+3+Math.floor(Math.random()*4));fp.pd=[todayStr(),8];
+   const b=BD.find(b=>!bDone(b[0])&&unlocked(b[0]));if(b){fp.don[b[0]]={};const k=Object.keys(b[4])[0];fp.don[b[0]][k]=Math.ceil(b[4][k]/2);fp.ev.unshift({k:'don',b:b[0],it:k,n:fp.don[b[0]][k],t:Date.now()})}
+   fp.ev.unshift({k:'goal',t:Date.now()-1});dbgSaveP(fp);return done(`${paN()}的進度已產生`)}
+  case'd_pask':{const fp=dbgFakeP();const qi=Math.floor(Math.random()*QB.length),q=QB[qi],o=shuffle(q[1]);
+   fp.ask.unshift({id:'fake'+Date.now().toString(36),q:plain(q[0]),o:o.map(plain),a:o.indexOf(q[1][0]),ex:plain(q[2]),t:q[3],lv:q[4],un:'',ts:Date.now()});fp.ev.unshift({k:'ask',u:q[3],t:Date.now()});dbgSaveP(fp);return done(`${paN()}寄來一題請教（到學院看）`)}
+  case'd_prep':{const fp=dbgFakeP();let n=0;save.asks.forEach(a=>{if(!fp.rep2[a.id]){const p=Math.random()<.7?a.a:(a.a+1)%4;fp.rep2[a.id]={p,ok:p===a.a,h:Math.floor(Math.random()*HINTS.length),ts:Date.now()};n++}});
+   if(n)fp.ev.unshift({k:'reply',t:Date.now()});dbgSaveP(fp);return done(n?`${paN()}回覆了 ${n} 題`:'你還沒有寄出請教');}
+  case'd_day':TOFF++;try{localStorage.setItem('mb_toff',String(TOFF))}catch(e){}PQ=null;return done(`現在是 ${todayStr()}`);
+  case'd_wipe':save=defSave();save.intro=true;try{localStorage.removeItem('mb_testP_'+ROLE)}catch(e){}P=null;LV0={};snapLv();_persist();toast('🧪 測試存檔已清空');closeM();return;
+ }
+}
+
 // ===================== 事件綁定 =====================
 function modal(h){const m=$('modal');m.innerHTML=`<div class="mbox">${h}</div>`;m.classList.add('show');bind(m)}
 function closeM(){$('modal').classList.remove('show');$('modal').innerHTML='';render()}
@@ -565,6 +608,8 @@ function act(a,v,el){
  switch(a){
   case'close':return closeM();
   case'help':return openHelp();
+  case'dbg':return dbgPanel();
+  default:if(a.startsWith('d_')||a.startsWith('dbg'))return dbg(a,v);
   case'bld':return openBld(v);
   case'donate':return donate(v,el.dataset.i);
   case'bquiz':return bQuiz(v);
@@ -615,7 +660,7 @@ function prologue(){
 // 隱藏開關：連點標題 5 下切換身分（測試用）
 let tapN=0,tapT=0;
 $('title').onclick=()=>{const t=Date.now();tapN=t-tapT<700?tapN+1:1;tapT=t;if(tapN>=5){tapN=0;
- modal(`<h3>👀 切換視角</h3><div class="muted">目前是：<b>${meN()}</b>。兩個視角的存檔分開保存。</div><button class="btn" data-a="role" data-v="j">傑（北方礦山）</button><button class="btn" data-a="role" data-v="her">彣（南方海岸）</button><button class="btn ghost" data-a="close">取消</button>`);
+ modal(`<h3>👀 切換視角</h3><div class="muted">目前是：<b>${meN()}</b>。兩個視角的存檔分開保存。</div><button class="btn" data-a="role" data-v="j">傑（北方礦山）</button><button class="btn" data-a="role" data-v="her">彣（南方海岸）</button><button class="btn gold" data-a="dbg">🧪 ${TEST?'測試工具':'進入測試模式'}</button><button class="btn ghost" data-a="close">取消</button>`);
  $('modal').querySelectorAll('[data-a=role]').forEach(b=>b.onclick=()=>{save.lastVisit=Date.now();_persist();pushMine();try{localStorage.setItem('mb_role',b.dataset.v)}catch(e){}location.reload()})}};
 
 // ===================== 啟動 =====================
