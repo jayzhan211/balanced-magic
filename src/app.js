@@ -156,11 +156,11 @@ function renderNav(){
 }
 function renderHead(){
  $('subt').textContent=`${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
- const T=town();$('hstats').innerHTML=`人口 <b>${T.pop}</b><br>今天一起 ${Math.min(teamToday(),GOAL)}/${GOAL}`;
+ const T=town();$('hstats').innerHTML=`<button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
 }
 function render(){renderHead();renderNav();if(TAB==='acad'){const nr=newReplies();setTimeout(()=>{if(nr.length){nr.forEach(a=>save.askSeen[a.id]=1);_persist();renderNav()}},50)}
  const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook}[TAB]();$('main').innerHTML=h;bind();
- $('foot').innerHTML=TAB==='book'?`<button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
+ $('foot').innerHTML=TAB==='book'?`<button data-a="help" style="margin-right:8px">📖 玩法介紹</button><button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
 
 // ---- 城鎮 ----
 function vTown(){
@@ -521,6 +521,38 @@ function openApp(id){const a=APPM[id];const units=a.u.map(u=>`<span class="chip 
  if(newReplies().length){}
 }
 
+
+// ===================== 玩法介紹 =====================
+function openHelp(){
+ const n=HOME[ME()]==='n';
+ modal(`<h3>📖 玩法介紹</h3>
+ <div class="muted">你和${paN()}被召喚到一個魔法全是化學的世界。鎮上的孩子想學，你們兩個是他們的老師。這是一起努力的遊戲，沒有輸贏。</div>
+ <div class="sec" style="margin-top:12px">每次上線大概這樣玩</div>
+ <div class="ex"><b>① 📝 練習</b>：選一位學徒，開始答題。<br>
+ ・每一題都是在幫學徒上課；答對，學徒就長大一點，也會拿到蓋房子要用的原料。<br>
+ ・題目難度會照<b>你自己</b>的答對率調整（大約答對七成的難度），所以兩個人程度不同也沒關係。<br>
+ ・答錯會看到解說；不懂的題目按「✉️ 請教${paN()}」寄過去。</div>
+ <div class="ex"><b>② 🎓 學院</b>：看學徒成長、回覆${paN()}的請教。<br>
+ ・兩個人答對的題目都算同一位學徒的經驗。<br>
+ ・學徒升級才能蓋對應的建築；Lv${GRAD} 出師後，每天會自己寄材料回來。<br>
+ ・回覆請教時可以附一句提示（不用打字）。</div>
+ <div class="ex"><b>③ 🏘️ 小鎮</b>：把材料送去蓋房子。<br>
+ ・點建築看需要什麼；材料夠就按「捐出」。<br>
+ ・缺的東西如果是原料，繼續練習就會拿到；如果要用反應做，點旁邊的按鈕會直接跳到工房。<br>
+ ・上方七格是鎮民的需求（住、水、糧、醫、光、工、樂），「鎮民心聲」會告訴你現在最該蓋哪一棟。<br>
+ ・灰色有 🔒 的建築，要先把對應的學徒教到指定等級。</div>
+ <div class="ex"><b>④ ⚗️ 工房</b>：把原料變成建築要的東西。<br>
+ ・第一次做某個反應要先<b>配平</b>：按 ▲▼ 調係數，讓兩邊每種原子一樣多。卡住時打開「原子計數」。<br>
+ ・配平過一次之後，就可以直接照比例量產。<br>
+ ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
+ <div class="ex"><b>⑤ 📘 筆記</b>：看自己每個單元的答對率（只有你看得到）、蒐集到的原理卡、配平過的方程式。</div>
+ <div class="sec">每日目標</div>
+ <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
+ <div class="sec">第一次玩建議</div>
+ <div class="muted">先到「練習」選 ⚖️阿秤 或 🍋檸檸 答幾題 → 到「小鎮」看石屋需要什麼 → 去「工房」配平「石灰石 → 生石灰」→ 把材料捐給石屋。</div>
+ <button class="btn gold" data-a="close">開始玩</button>`);
+}
+
 // ===================== 事件綁定 =====================
 function modal(h){const m=$('modal');m.innerHTML=`<div class="mbox">${h}</div>`;m.classList.add('show');bind(m)}
 function closeM(){$('modal').classList.remove('show');$('modal').innerHTML='';render()}
@@ -532,6 +564,7 @@ function bind(root=document){
 function act(a,v,el){
  switch(a){
   case'close':return closeM();
+  case'help':return openHelp();
   case'bld':return openBld(v);
   case'donate':return donate(v,el.dataset.i);
   case'bquiz':return bQuiz(v);
@@ -577,7 +610,7 @@ function prologue(){
  <p>這裡沒有魔法，他們口中的魔法全是化學。鎮上的孩子們想學，於是你們兩個成了他們的老師。</p>
  <div class="ex">📝 練習：選一位學徒上課，答題就是在教他。題目難度跟著你自己的答對率調整；不論誰答對，學徒都一樣長大。<br>🎓 學院：學徒升級後能幫忙蓋新建築，出師後每天寄材料回來。卡住的題目可以「請教」${paN()}，${paN()}的請教也會出現在這裡。<br>🏘️ 小鎮：兩個人一起蓋房子，照顧鎮民的住、水、糧、醫、光、工、樂。<br>⚗️ 工房：第一次做某個反應要先配平。<br>每天兩人合計答對 ${GOAL} 題，鎮民會送禮物來。</div>
  <button class="btn gold" data-a="start">開始</button>`);
- $('modal').querySelector('[data-a=start]').onclick=()=>{save.intro=true;persist();closeM()};
+ $('modal').querySelector('[data-a=start]').onclick=()=>{save.intro=true;persist();closeM();openHelp()};
 }
 // 隱藏開關：連點標題 5 下切換身分（測試用）
 let tapN=0,tapT=0;
