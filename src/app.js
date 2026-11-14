@@ -86,15 +86,45 @@ function pub(){
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
  if(!SY.on)return;clearTimeout(SY.timer);if(SY.needLogin){setSt('err','傑還沒用 Google 登入，進度不會上傳');return}
+ if(SY.myCloud)adoptCloud(SY.myCloud);
  const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last){setSt('ok');return}
  try{await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key;SY.okAt=Date.now();setSt('ok')}catch(e){console.warn('sync',e);setSt('err',e&&e.message||e)}
 }
+// ===== 雲端合併：本機和雲端的進度合在一起，只會多不會少 =====
+const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
+const J=x=>JSON.parse(JSON.stringify(x));
+function mergeSaves(L,C){
+ if(!C||typeof C!=='object'||!C.v)return L;if(!L||!L.v)return Object.assign(defSave(),C);
+ const aL=activity(L),aC=activity(C),base=(aC>aL||(aC===aL&&(+C.svt||0)>(+L.svt||0)))?C:L,oth=base===L?C:L;
+ const o=J(Object.assign(defSave(),base)),mx=(a,b)=>Math.max(+a||0,+b||0);
+ const uni=(a,b)=>Object.assign({},b||{},a||{});
+ o.solved=uni(L.solved,C.solved);o.quiz=uni(L.quiz,C.quiz);o.rs=uni(L.rs,C.rs);o.tutSeen=uni(L.tutSeen,C.tutSeen);o.askSeen=uni(L.askSeen,C.askSeen);o.replies=uni(L.replies,C.replies);
+ o.made={};for(const k of new Set([...Object.keys(L.made||{}),...Object.keys(C.made||{})]))o.made[k]=mx((L.made||{})[k],(C.made||{})[k]);
+ o.don={};for(const b of new Set([...Object.keys(L.don||{}),...Object.keys(C.don||{})])){o.don[b]={};const x=(L.don||{})[b]||{},y=(C.don||{})[b]||{};for(const i of new Set([...Object.keys(x),...Object.keys(y)]))o.don[b][i]=mx(x[i],y[i])}
+ o.us={};for(const u of new Set([...Object.keys(L.us||{}),...Object.keys(C.us||{})])){const x=(L.us||{})[u]||[0,0],y=(C.us||{})[u]||[0,0];o.us[u]=[mx(x[0],y[0]),mx(x[1],y[1])]}
+ o.dhist={};for(const k of new Set([...Object.keys(L.dhist||{}),...Object.keys(C.dhist||{})]))o.dhist[k]=mx((L.dhist||{})[k],(C.dhist||{})[k]);
+ o.qst=[mx((L.qst||[])[0],(C.qst||[])[0]),mx((L.qst||[])[1],(C.qst||[])[1])];
+ for(const k of ['rep','miss','tut','nbSeen','svt','lastVisit'])o[k]=mx(L[k],C[k]);
+ o.intro=!!(L.intro||C.intro);
+ for(const k of ['goalDay'])o[k]=[L[k]||'',C[k]||''].sort().pop();
+ o.work=uni(L.work,C.work);for(const k in o.work)o.work[k]=[(L.work||{})[k]||'',(C.work||{})[k]||''].sort().pop();
+ for(const k of ['pdOk','pday']){const x=L[k]||['',0],y=C[k]||['',0];o[k]=x[0]===y[0]?[x[0],mx(x[1],y[1])]:(x[0]>y[0]?x:y)}
+ const byId=(a,b,n)=>{const m={};[...(b||[]),...(a||[])].forEach(e=>{if(e&&e.id)m[e.id]=e});return Object.values(m).sort((p,q)=>(q.ts||q.t||0)-(p.ts||p.t||0)).slice(0,n)};
+ o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
+ o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
+ o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
+ const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
+ if(!o.role)o.role=oth.role||'';
+ return o;
+}
+function adoptCloud(d){
+ if(!d||typeof d.sv!=='string'||d.ep!==EPOCH)return false;let c;try{c=JSON.parse(d.sv)}catch(e){return false}if(!c||!c.v)return false;
+ const before=JSON.stringify(save),a0=activity(save);const M=mergeSaves(save,c);if(JSON.stringify(M)===before)return false;
+ save=M;clean();_persist();if(a0===0&&activity(save)>0)toast('☁️ 已從雲端找回你的進度');
+ if(!$('modal').classList.contains('show'))render();else renderHead();return true;
+}
 async function restore(){
- try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});if(!snap.exists)return;
-  const d=snap.data();if(!d||typeof d.sv!=='string'||d.ep!==EPOCH)return;const c=JSON.parse(d.sv);if(!c||!c.v)return;
-  const empty=!save.intro&&!Object.keys(save.solved).length;
-  if(empty||(+d.svt||0)>(save.svt||0)){save=Object.assign(defSave(),c);clean();_persist();if(empty)toast('☁️ 已從雲端找回你的工房');render()}
- }catch(e){console.warn('restore',e)}
+ try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});if(snap.exists)adoptCloud(snap.data())}catch(e){console.warn('restore',e)}
 }
 function onPartner(raw){
  if(raw&&raw.ep!==EPOCH)raw=null;
@@ -116,6 +146,7 @@ async function initSync(){
   SY.needLogin=ROLE==='j'&&!isJUser(u)&&!TCLOUD;
   SY.db=firebase.firestore();
   await restore();SY.on=true;
+  SY.db.doc(`balance/${DOCP()}/players/${ME()}`).onSnapshot(x=>{if(x.metadata&&x.metadata.hasPendingWrites)return;SY.myCloud=x.exists?x.data():null;if(SY.myCloud)adoptCloud(SY.myCloud)},e=>console.warn('self',e));
   SY.db.doc(`balance/${DOCP()}/players/${PA()}`).onSnapshot(s=>{SY.pAt=Date.now();onPartner(s.exists?s.data():null)},e=>{console.warn('sync',e);setSt('err',e&&e.message||e)});
   pushMine();render();
  }catch(e){console.warn('sync init',e);setSt('err',e&&e.message||e)}
