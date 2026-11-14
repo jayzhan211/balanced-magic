@@ -31,19 +31,49 @@ const meN=()=>NM[ME()], paN=()=>NM[PA()];
 const KEY=()=>(TEST?'mb_test_':'mb_save_')+ROLE;
 // 存檔世代：換世代＝全部重新開始（舊的雲端資料、這台裝置上的正式進度都不再讀取）
 const EPOCH='2026-11-14-start';
-try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
+try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
 function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
+const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
+const J=x=>JSON.parse(JSON.stringify(x));
+function mergeSaves(L,C){
+ if(!C||typeof C!=='object'||!C.v)return L;if(!L||!L.v)return Object.assign(defSave(),C);
+ const aL=activity(L),aC=activity(C),base=(aC>aL||(aC===aL&&(+C.svt||0)>(+L.svt||0)))?C:L,oth=base===L?C:L;
+ const o=J(Object.assign(defSave(),base)),mx=(a,b)=>Math.max(+a||0,+b||0);
+ const uni=(a,b)=>Object.assign({},b||{},a||{});
+ o.solved=uni(L.solved,C.solved);o.quiz=uni(L.quiz,C.quiz);o.rs=uni(L.rs,C.rs);o.tutSeen=uni(L.tutSeen,C.tutSeen);o.askSeen=uni(L.askSeen,C.askSeen);o.replies=uni(L.replies,C.replies);
+ o.made={};for(const k of new Set([...Object.keys(L.made||{}),...Object.keys(C.made||{})]))o.made[k]=mx((L.made||{})[k],(C.made||{})[k]);
+ o.don={};for(const b of new Set([...Object.keys(L.don||{}),...Object.keys(C.don||{})])){o.don[b]={};const x=(L.don||{})[b]||{},y=(C.don||{})[b]||{};for(const i of new Set([...Object.keys(x),...Object.keys(y)]))o.don[b][i]=mx(x[i],y[i])}
+ o.us={};for(const u of new Set([...Object.keys(L.us||{}),...Object.keys(C.us||{})])){const x=(L.us||{})[u]||[0,0],y=(C.us||{})[u]||[0,0];o.us[u]=[mx(x[0],y[0]),mx(x[1],y[1])]}
+ o.dhist={};for(const k of new Set([...Object.keys(L.dhist||{}),...Object.keys(C.dhist||{})]))o.dhist[k]=mx((L.dhist||{})[k],(C.dhist||{})[k]);
+ o.qst=[mx((L.qst||[])[0],(C.qst||[])[0]),mx((L.qst||[])[1],(C.qst||[])[1])];
+ for(const k of ['rep','miss','tut','nbSeen','svt','lastVisit'])o[k]=mx(L[k],C[k]);
+ o.intro=!!(L.intro||C.intro);
+ for(const k of ['goalDay'])o[k]=[L[k]||'',C[k]||''].sort().pop();
+ o.work=uni(L.work,C.work);for(const k in o.work)o.work[k]=[(L.work||{})[k]||'',(C.work||{})[k]||''].sort().pop();
+ for(const k of ['pdOk','pday']){const x=L[k]||['',0],y=C[k]||['',0];o[k]=x[0]===y[0]?[x[0],mx(x[1],y[1])]:(x[0]>y[0]?x:y)}
+ const byId=(a,b,n)=>{const m={};[...(b||[]),...(a||[])].forEach(e=>{if(e&&e.id)m[e.id]=e});return Object.values(m).sort((p,q)=>(q.ts||q.t||0)-(p.ts||p.t||0)).slice(0,n)};
+ o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
+ o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
+ o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
+ const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
+ if(!o.role)o.role=oth.role||'';
+ return o;
+}
+const BKEY=()=>(TEST?'mb_testbak_':'mb_bak_')+ROLE;
 let save=load();
 function clean(){
  for(const k in save.inv){if(!IT[k]||!(save.inv[k]>0))delete save.inv[k]}
  for(const k in save.solved)if(!RXM[k])delete save.solved[k];
  for(const b in save.don){if(!BDM[b]){delete save.don[b];continue}for(const i in save.don[b])if(!IT[i])delete save.don[b][i]}
 }
+try{const b=JSON.parse(localStorage.getItem(BKEY())||'null');if(b&&b.v&&activity(b)>activity(save))save=mergeSaves(save,b)}catch(e){}
 clean();
-function _persist(){try{localStorage.setItem(KEY(),JSON.stringify(save))}catch(e){}}
+function _persist(){try{const j=JSON.stringify(save);localStorage.setItem(KEY(),j);
+ // 本機保險：另存一份「最多進度」的備份，正式存檔就算被蓋掉也找得回來
+ const b=JSON.parse(localStorage.getItem(BKEY())||'null');if(!b||activity(save)>=activity(b))localStorage.setItem(BKEY(),j)}catch(e){}}
 function persist(){save.svt=Date.now();_persist();scheduleSync()}
 const inv=id=>save.inv[id]||0;
 function addInv(id,n){save.inv[id]=Math.max(0,inv(id)+n);if(!save.inv[id])delete save.inv[id]}
@@ -51,7 +81,7 @@ function pushEv(e){e.t=Date.now();save.ev.unshift(e);save.ev=save.ev.slice(0,24)
 
 // ===================== 夥伴（Firebase 同步；沒有 Firebase 時單機也能玩） =====================
 let P=null; // 夥伴的公開資料
-const SY={on:false,db:null,timer:null,last:'',st:'off',err:'',needLogin:false,user:null};
+const SY={ready:false,bakA:-1,on:false,db:null,timer:null,last:'',st:'off',err:'',needLogin:false,user:null};
 // 傑用 Google 登入（同單字花園）：彣不用登入，打開就是彣
 const J_UID='f7hVLG34t7ayjacQSG2jPWiCn4A2'; // 傑第一次登入後，把帳號 UID 填在這裡＆ firestore.rules，就只認這個帳號
 const isJUser=u=>!!u&&!u.isAnonymous&&(!J_UID||u.uid===J_UID);
@@ -86,45 +116,30 @@ function pub(){
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
  if(!SY.on)return;clearTimeout(SY.timer);if(SY.needLogin){setSt('err','傑還沒用 Google 登入，進度不會上傳');return}
+ // 安全閘：還沒成功讀到雲端的進度之前，絕不上傳（避免空存檔蓋掉雲端）
+ if(!SY.ready){await restore();if(!SY.ready){setSt('err','還沒讀到雲端進度，先不上傳，稍後自動重試');return}}
  if(SY.myCloud)adoptCloud(SY.myCloud);
  const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last){setSt('ok');return}
- try{await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key;SY.okAt=Date.now();setSt('ok')}catch(e){console.warn('sync',e);setSt('err',e&&e.message||e)}
+ try{await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key;SY.okAt=Date.now();setSt('ok');backupCloud(sv)}catch(e){console.warn('sync',e);setSt('err',e&&e.message||e)}
 }
 // ===== 雲端合併：本機和雲端的進度合在一起，只會多不會少 =====
-const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
-const J=x=>JSON.parse(JSON.stringify(x));
-function mergeSaves(L,C){
- if(!C||typeof C!=='object'||!C.v)return L;if(!L||!L.v)return Object.assign(defSave(),C);
- const aL=activity(L),aC=activity(C),base=(aC>aL||(aC===aL&&(+C.svt||0)>(+L.svt||0)))?C:L,oth=base===L?C:L;
- const o=J(Object.assign(defSave(),base)),mx=(a,b)=>Math.max(+a||0,+b||0);
- const uni=(a,b)=>Object.assign({},b||{},a||{});
- o.solved=uni(L.solved,C.solved);o.quiz=uni(L.quiz,C.quiz);o.rs=uni(L.rs,C.rs);o.tutSeen=uni(L.tutSeen,C.tutSeen);o.askSeen=uni(L.askSeen,C.askSeen);o.replies=uni(L.replies,C.replies);
- o.made={};for(const k of new Set([...Object.keys(L.made||{}),...Object.keys(C.made||{})]))o.made[k]=mx((L.made||{})[k],(C.made||{})[k]);
- o.don={};for(const b of new Set([...Object.keys(L.don||{}),...Object.keys(C.don||{})])){o.don[b]={};const x=(L.don||{})[b]||{},y=(C.don||{})[b]||{};for(const i of new Set([...Object.keys(x),...Object.keys(y)]))o.don[b][i]=mx(x[i],y[i])}
- o.us={};for(const u of new Set([...Object.keys(L.us||{}),...Object.keys(C.us||{})])){const x=(L.us||{})[u]||[0,0],y=(C.us||{})[u]||[0,0];o.us[u]=[mx(x[0],y[0]),mx(x[1],y[1])]}
- o.dhist={};for(const k of new Set([...Object.keys(L.dhist||{}),...Object.keys(C.dhist||{})]))o.dhist[k]=mx((L.dhist||{})[k],(C.dhist||{})[k]);
- o.qst=[mx((L.qst||[])[0],(C.qst||[])[0]),mx((L.qst||[])[1],(C.qst||[])[1])];
- for(const k of ['rep','miss','tut','nbSeen','svt','lastVisit'])o[k]=mx(L[k],C[k]);
- o.intro=!!(L.intro||C.intro);
- for(const k of ['goalDay'])o[k]=[L[k]||'',C[k]||''].sort().pop();
- o.work=uni(L.work,C.work);for(const k in o.work)o.work[k]=[(L.work||{})[k]||'',(C.work||{})[k]||''].sort().pop();
- for(const k of ['pdOk','pday']){const x=L[k]||['',0],y=C[k]||['',0];o[k]=x[0]===y[0]?[x[0],mx(x[1],y[1])]:(x[0]>y[0]?x:y)}
- const byId=(a,b,n)=>{const m={};[...(b||[]),...(a||[])].forEach(e=>{if(e&&e.id)m[e.id]=e});return Object.values(m).sort((p,q)=>(q.ts||q.t||0)-(p.ts||p.t||0)).slice(0,n)};
- o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
- o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
- o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
- const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
- if(!o.role)o.role=oth.role||'';
- return o;
-}
 function adoptCloud(d){
  if(!d||typeof d.sv!=='string'||d.ep!==EPOCH)return false;let c;try{c=JSON.parse(d.sv)}catch(e){return false}if(!c||!c.v)return false;
  const before=JSON.stringify(save),a0=activity(save);const M=mergeSaves(save,c);if(JSON.stringify(M)===before)return false;
  save=M;clean();_persist();if(a0===0&&activity(save)>0)toast('☁️ 已從雲端找回你的進度');
  if(!$('modal').classList.contains('show'))render();else renderHead();return true;
 }
+// 雲端保險：每天一格、輪替 7 格的備份（只在進度變多時更新），主存檔就算被蓋掉也能找回
+const BAK=()=>SY.db.doc(`balance/${DOCP()}/bak/${ME()}`);
+async function backupCloud(sv){
+ const a=activity(save);if(a<=SY.bakA||a===0)return;
+ try{await BAK().set({['d'+new Date().getDay()]:{sv,t:Date.now(),a,ep:EPOCH}},{merge:true});SY.bakA=a}catch(e){console.warn('bak',e)}
+}
 async function restore(){
- try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});if(snap.exists)adoptCloud(snap.data())}catch(e){console.warn('restore',e)}
+ try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});
+  if(snap.exists)adoptCloud(snap.data());SY.ready=true;
+ }catch(e){console.warn('restore',e);return}
+ try{const b=await BAK().get({source:'server'});if(b.exists){const d=b.data();Object.values(d||{}).forEach(x=>{if(x&&x.ep===EPOCH)adoptCloud(x)})}}catch(e){console.warn('bak read',e)}
 }
 function onPartner(raw){
  if(raw&&raw.ep!==EPOCH)raw=null;
@@ -146,7 +161,7 @@ async function initSync(){
   SY.needLogin=ROLE==='j'&&!isJUser(u)&&!TCLOUD;
   SY.db=firebase.firestore();
   await restore();SY.on=true;
-  SY.db.doc(`balance/${DOCP()}/players/${ME()}`).onSnapshot(x=>{if(x.metadata&&x.metadata.hasPendingWrites)return;SY.myCloud=x.exists?x.data():null;if(SY.myCloud)adoptCloud(SY.myCloud)},e=>console.warn('self',e));
+  SY.db.doc(`balance/${DOCP()}/players/${ME()}`).onSnapshot(x=>{if(x.metadata&&x.metadata.hasPendingWrites)return;if(!(x.metadata&&x.metadata.fromCache))SY.ready=true;SY.myCloud=x.exists?x.data():null;if(SY.myCloud)adoptCloud(SY.myCloud)},e=>console.warn('self',e));
   SY.db.doc(`balance/${DOCP()}/players/${PA()}`).onSnapshot(s=>{SY.pAt=Date.now();onPartner(s.exists?s.data():null)},e=>{console.warn('sync',e);setSt('err',e&&e.message||e)});
   pushMine();render();
  }catch(e){console.warn('sync init',e);setSt('err',e&&e.message||e)}
@@ -798,7 +813,7 @@ function dbg(a,v){
   case'd_pnn':{const fp=dbgFakeP();fp.nn=fp.nn||{};let n=0;save.nb.forEach(e=>{if(!fp.nn[e.id]){fp.nn[e.id]={txt:HINTS[Math.floor(Math.random()*HINTS.length)],ts:Date.now()};n++}});if(n)fp.ev.unshift({k:'nn',t:Date.now()});dbgSaveP(fp);return done(n?`${paN()}留了 ${n} 則筆記`:'你還沒收題目進筆記本')}
   case'd_rs':BD.forEach(b=>{if(BX[b[0]]&&BX[b[0]][1]>=3)save.rs[b[0]]=1});return done('研究全部完成');
   case'd_day':TOFF++;try{localStorage.setItem('mb_toff',String(TOFF))}catch(e){}PQ=null;return done(`現在是 ${todayStr()}`);
-  case'd_wipe':save=defSave();save.intro=true;try{localStorage.removeItem('mb_testP_'+ROLE)}catch(e){}P=null;LV0={};snapLv();_persist();toast('🧪 測試存檔已清空');closeM();return;
+  case'd_wipe':save=defSave();save.intro=true;try{localStorage.removeItem('mb_testP_'+ROLE);localStorage.removeItem(BKEY())}catch(e){}P=null;LV0={};snapLv();_persist();toast('🧪 測試存檔已清空');closeM();return;
  }
 }
 

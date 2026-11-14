@@ -20,5 +20,20 @@ service cloud.firestore {
                    && request.auth != null
                    && request.resource.data.keys().size() < 40;
     }
+
+    // 備份（每天一格、輪替 7 格）：誰能寫自己的進度，就能寫自己的備份
+    match /balance/{pair}/bak/{player} {
+      allow read: if request.auth != null && (pair == '7NagGHeso22QC5bBCStwkiGO' || pair == '7NagGHeso22QC5bBCStwkiGOT');
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGO' && player == 'j'
+                   && request.auth != null
+                   && request.auth.uid == 'f7hVLG34t7ayjacQSG2jPWiCn4A2'
+                   && request.resource.data.keys().size() <= 7;
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGO' && player == 'her'
+                   && request.auth != null
+                   && request.resource.data.keys().size() <= 7;
+      allow write: if pair == '7NagGHeso22QC5bBCStwkiGOT' && player in ['j', 'her']
+                   && request.auth != null
+                   && request.resource.data.keys().size() <= 7;
+    }
   }
 }
