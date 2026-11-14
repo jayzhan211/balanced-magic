@@ -1323,6 +1323,7 @@ function openBld(id){
    h+=have?`<button class="btn gold" data-a="donate" data-v="${id}" data-i="${i}">捐出 ${Math.min(have,left)} 個（倉庫有 ${have}）</button>`
      :`<div class="small">倉庫裡沒有。${isRaw(i)?`去「練習」答題，獎勵會自動補這個原料（${SRC[IT[i][4]]}）`:makers(i).length?`工房做得出來：${makers(i).slice(0,3).map(r=>`<button class="chip" data-a="gorx" data-v="${r[0]}">${OPN[r[2]][1]} ${r[3].map(([x])=>nm(x)).join('+')}</button>`).join(' ')}`:'還沒學會怎麼做'}</div>`}
   h+=`</div>`}
+ if(!d)h+=planHTML(id);
  if(d){
   h+=`<div class="plaque">🪧 ${NM.j} 與 ${NM.her} 一起蓋的</div>`;
   if(!save.quiz[id])h+=`<div class="ex" style="margin-top:10px">${b[5].split('：')[0]}還有一個問題想問你——答對就能拿到原理卡。</div><button class="btn gold" data-a="bquiz" data-v="${id}">回答「為什麼」</button>`;
@@ -1414,10 +1415,11 @@ function openCraft(id,q,pre=''){
  CRAFT=id;
 }
 let CRAFT=null;
+function doCraft(rid,q){const r=RXM[rid];r[3].forEach(([i,c])=>addInv(i,-c*q));r[4].forEach(([i,c])=>addInv(i,c*q));const bonus=myRole()==='art'?q:0;if(bonus)addInv(r[4][0][0],bonus);
+ const first=!save.made[r[0]];save.made[r[0]]=(save.made[r[0]]||0)+q;if(first)save.rep+=2;return bonus}
 function craft(q){
  const r=RXM[CRAFT];if(maxRuns(r)<q)return;
- r[3].forEach(([i,c])=>addInv(i,-c*q));r[4].forEach(([i,c])=>addInv(i,c*q));const bonus=myRole()==='art'?q:0;if(bonus)addInv(r[4][0][0],bonus);
- const first=!save.made[r[0]];save.made[r[0]]=(save.made[r[0]]||0)+q;if(first)save.rep+=2;persist();
+ const bonus=doCraft(CRAFT,q);persist();
  toast(`${OPN[r[2]][1]} 得到 ${r[4].map(([i,c],k)=>nm(i)+'×'+(c*q+(k===0?bonus:0))).join('、')}${bonus?'（工匠加成）':''}`);
  openCraft(CRAFT,1);
 }
@@ -1430,6 +1432,33 @@ function openItem(id){
  ${inv(id)?`<div class="sec" style="margin-top:12px">寄給${paN()}</div><div class="qty"><button data-a="gq" data-v="-1">−</button><b id="gn">1</b><button data-a="gq" data-v="1">＋</button></div><button class="btn gold" data-a="gift" data-v="${id}">📦 寄出</button>`:''}
  <button class="btn ghost" data-a="close">關閉</button>`);
 }
+
+
+// ---- 備料清單：缺的東西 → 依序要做哪些反應、還缺哪些原料 ----
+function plan(bid){
+ const v=Object.assign({},save.inv),steps=[],raw={};
+ function need(id,n,d){if(n<=0)return;const have=v[id]||0,use=Math.min(have,n);v[id]=have-use;n-=use;if(n<=0)return;
+  if(isRaw(id)||d>8||!BEST[id]){raw[id]=(raw[id]||0)+n;return}
+  const r=BEST[id],out=r[4].find(x=>x[0]===id)[1],runs=Math.ceil(n/out);r[3].forEach(([i,c])=>need(i,c*runs,d+1));
+  r[4].forEach(([o,m])=>v[o]=(v[o]||0)+m*runs);v[id]-=n;const last=steps[steps.length-1];if(last&&last[0]===r[0])last[1]+=runs;else steps.push([r[0],runs])}
+ const p=prog(bid);for(const i in p){const left=p[i].need-p[i].me-p[i].pa;if(left>0)need(i,left,0)}
+ const m=[];steps.forEach(([r,n])=>{const x=m.find(y=>y[0]===r);if(x)x[1]+=n;else m.push([r,n])});
+ return{steps:m,raw};
+}
+function planHTML(bid){const{steps,raw}=plan(bid),rk=Object.keys(raw);
+ if(!steps.length&&!rk.length)return`<div class="ex">✅ 材料都齊了，直接按上面的「捐出」。</div>`;
+ let h=`<div class="card" style="background:#fffaf0;margin-top:10px"><b>🧾 備料清單</b>`;
+ if(steps.length)h+=`<div class="small" style="margin:4px 0">依序要做的反應：</div>`+steps.map(([rid,n],k)=>{const r=RXM[rid],ok=!!save.solved[rid];return`<div class="small" style="margin:3px 0">${k+1}. ${OPN[r[2]][1]} ${r[3].map(([x])=>nm(x)).join(' + ')} → <b>${r[4].map(([x])=>nm(x)).join('、')}</b> ×${n} 次 ${ok?'<span class="ok">✓</span>':`<span class="bad">（要先配平）</span>`}</div>`}).join('');
+ if(rk.length)h+=`<div class="small" style="margin-top:6px">還缺原料：${rk.map(i=>`<b>${nm(i)}</b> ×${raw[i]}`).join('、')}<br>→ 去「練習」答題，獎勵會優先補這些。</div>`;
+ if(steps.length)h+=`<button class="btn gold" data-a="autocraft" data-v="${bid}">⚡ 照順序做（能做多少做多少）</button>`;
+ return h+`</div>`}
+function autoCraft(bid){
+ const{steps}=plan(bid);const done=[];
+ for(const[rid,n]of steps){const r=RXM[rid];
+  if(!save.solved[rid]&&!NOBAL[rid]){persist();if(done.length)toast('已做：'+done.join('、'));BAL={id:rid,c:[...r[3],...r[4]].map(()=>1),tally:false,tries:0,msg:`<div class="ex">備料做到這一步，需要先配平這個反應。配平後再回建築按一次「照順序做」。</div>`};return drawBal()}
+  if(NOBAL[rid])save.solved[rid]=1;
+  const q=Math.min(n,maxRuns(r));if(q<=0)break;doCraft(rid,q);done.push(`${r[4].map(([x])=>nm(x))[0]}×${q}`);if(q<n)break}
+ persist();toast(done.length?'⚡ 做好了：'+done.join('、'):'原料不夠，先去練習補原料吧');openBld(bid)}
 
 // ---- 練習（主畫面）：選範圍 → 一題接一題 → 答對的獎勵自動換成鎮上最缺的原料 ----
 let PQ=null;
@@ -1787,6 +1816,7 @@ function act(a,v,el){
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
   case'nbadd':return nbAdd();
   case'flag':return flagQ();
+  case'autocraft':return autoCraft(v);
   case'flagr':FLR=v;document.querySelectorAll('[data-a=flagr]').forEach(x=>x.classList.toggle('zero',x.dataset.v!==v));return;
   case'flagsave':return flagSave();
   case'flagcopy':{const t=flagText();try{navigator.clipboard.writeText(t).then(()=>toast('已複製，貼給 Claude 就好'),()=>{$('flbox').style.display='block'})}catch(e){$('flbox').style.display='block'}return}
