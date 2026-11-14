@@ -53,7 +53,7 @@ function pushEv(e){e.t=Date.now();save.ev.unshift(e);save.ev=save.ev.slice(0,24)
 let P=null; // 夥伴的公開資料
 const SY={on:false,db:null,timer:null,last:'',st:'off',err:'',needLogin:false,user:null};
 // 傑用 Google 登入（同單字花園）：彣不用登入，打開就是彣
-const J_UID=''; // 傑第一次登入後，把帳號 UID 填在這裡＆ firestore.rules，就只認這個帳號
+const J_UID='f7hVLG34t7ayjacQSG2jPWiCn4A2'; // 傑第一次登入後，把帳號 UID 填在這裡＆ firestore.rules，就只認這個帳號
 const isJUser=u=>!!u&&!u.isAnonymous&&(!J_UID||u.uid===J_UID);
 const DOCP=()=>TCLOUD?PAIR+'T':PAIR;
 function setSt(x,e){SY.st=x;if(e)SY.err=String(e).slice(0,120);const el=$('syncst');if(el)el.innerHTML=stIcon()}

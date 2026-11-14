@@ -4,10 +4,10 @@ service cloud.firestore {
     match /balance/{pair}/players/{player} {
       allow read: if request.auth != null && (pair == '7NagGHeso22QC5bBCStwkiGO' || pair == '7NagGHeso22QC5bBCStwkiGOT');
 
-      // 傑：只有用 Google 登入才能寫（拿到 UID 後改成 request.auth.uid == '傑的UID'）
+      // 傑：只有傑的 Google 帳號能寫
       allow write: if pair == '7NagGHeso22QC5bBCStwkiGO' && player == 'j'
                    && request.auth != null
-                   && request.auth.token.firebase.sign_in_provider == 'google.com'
+                   && request.auth.uid == 'f7hVLG34t7ayjacQSG2jPWiCn4A2'
                    && request.resource.data.keys().size() < 40;
 
       // 彣：不用登入（匿名）就能寫
