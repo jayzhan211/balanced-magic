@@ -29,6 +29,9 @@ let ROLE='her';try{ROLE=localStorage.getItem('mb_role')==='j'?'j':'her'}catch(e)
 const ME=()=>ROLE, PA=()=>ROLE==='j'?'her':'j';
 const meN=()=>NM[ME()], paN=()=>NM[PA()];
 const KEY=()=>(TEST?'mb_test_':'mb_save_')+ROLE;
+// 存檔世代：換世代＝全部重新開始（舊的雲端資料、這台裝置上的正式進度都不再讀取）
+const EPOCH='2026-11-14-start';
+try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
 function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
@@ -75,7 +78,7 @@ function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+ return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
 }
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
@@ -85,12 +88,13 @@ async function pushMine(){
 }
 async function restore(){
  try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});if(!snap.exists)return;
-  const d=snap.data();if(!d||typeof d.sv!=='string')return;const c=JSON.parse(d.sv);if(!c||!c.v)return;
+  const d=snap.data();if(!d||typeof d.sv!=='string'||d.ep!==EPOCH)return;const c=JSON.parse(d.sv);if(!c||!c.v)return;
   const empty=!save.intro&&!Object.keys(save.solved).length;
   if(empty||(+d.svt||0)>(save.svt||0)){save=Object.assign(defSave(),c);clean();_persist();if(empty)toast('☁️ 已從雲端找回你的工房');render()}
  }catch(e){console.warn('restore',e)}
 }
 function onPartner(raw){
+ if(raw&&raw.ep!==EPOCH)raw=null;
  const prev=P;P=sanitize(raw);
  claimGifts();if(!prev){snapLv();claimWork()}else checkLv(false);checkGoal();
  if(prev&&P&&!document.hidden){const ne=P.ev.filter(e=>e.t>(prev.ev[0]?prev.ev[0].t:0));if(ne.length)toast(`${paN()}：${evText(ne[0],PA(),true)}`)}
