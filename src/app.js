@@ -171,7 +171,8 @@ function renderHead(){
  const T=town();$('hstats').innerHTML=`<button data-a="sync" id="syncst" style="float:right;margin-left:6px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer">${stIcon()}</button><button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
 }
 function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='nbk'){setTimeout(()=>{if(nbNew()){save.nbSeen=Date.now();_persist();renderNav()}},800)}
- const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
+ if(TAB==='acad'){save.tutSeen=save.tutSeen||{};if(!save.tutSeen.acad){save.tutSeen.acad=1;_persist()}}
+ const h=(['gather','town','acad','lab'].includes(TAB)?tutCard():'')+{town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
  $('foot').innerHTML=TAB==='book'?`<button data-a="help" style="margin-right:8px">📖 玩法介紹</button><button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
 
 // ---- 城鎮 ----
@@ -607,6 +608,26 @@ function openApp(id){const a=APPM[id];const units=a.u.map(u=>`<span class="chip 
 }
 
 
+
+// ===================== 新手任務 =====================
+const TUT=[
+ {t:'答對 3 題',d:'到「📝 練習」選一位學徒（例如 ⚖️阿秤），答對 3 題。',tab:'gather',ok:()=>save.qst[0]>=3},
+ {t:'收一題進筆記本',d:'答完任何一題，按「📒 收進筆記本」。',tab:'gather',ok:()=>save.nb.length>0},
+ {t:'認識學院',d:'到「🎓 學院」看看你的角色和學徒們。',tab:'acad',ok:()=>!!(save.tutSeen&&save.tutSeen.acad)},
+ {t:'第一次配平',d:'到「⚗️ 工房」找「石灰石 → 生石灰」，按 ▲▼ 調係數後按「檢查」。',tab:'lab',ok:()=>!!save.solved.lime},
+ {t:'送材料給石屋',d:'到「🏘️ 小鎮」點石屋，用「🧾 備料清單」做好材料，再按「捐出」。',tab:'town',ok:()=>Object.keys(save.don.house||{}).length>0},
+ {t:'蓋好石屋',d:'把石屋需要的東西捐齊（兩個人一起捐也算）。原料不夠就回練習答題。',tab:'town',ok:()=>bDone('house')},
+];
+function tutStep(){if(save.tut===99)return null;let k=save.tut||0;while(k<TUT.length&&TUT[k].ok())k++;
+ if(k!==(save.tut||0)){const was=save.tut||0;save.tut=k;
+  if(k>=TUT.length){save.tut=99;addInv('caco3',6);addInv('c',4);persist();setTimeout(()=>{confetti();toast('🎉 新手任務完成！送你石灰石×6、木炭×4')},300);return null}
+  addInv(rewardItem(),2);persist();setTimeout(()=>toast(`✅ 新手任務：${TUT[k-1].t}　→ 下一步：${TUT[k].t}`),200)}
+ return k<TUT.length?k:null}
+function tutCard(){const k=tutStep();if(k===null)return'';const x=TUT[k];
+ return`<div class="card" style="border:2px solid var(--gold2);background:#fffaf0"><div class="tagrow"><b>🧭 新手任務 ${k+1}/${TUT.length}：${x.t}</b><span class="small" data-a="tutskip" style="cursor:pointer;text-decoration:underline">略過</span></div>
+ <div class="small" style="margin:4px 0 6px">${x.d}</div><div class="need" style="margin:0"><div class="bar"><i style="width:${k/TUT.length*100}%;background:var(--gold2)"></i></div></div>
+ ${TAB!==x.tab?`<button class="btn gold" style="padding:7px" data-a="tab" data-v="${x.tab}">帶我去 →</button>`:''}</div>`}
+
 // ===================== 玩法介紹 =====================
 function openHelp(){
  const n=HOME[ME()]==='n';
@@ -702,6 +723,7 @@ function act(a,v,el){
  switch(a){
   case'close':return closeM();
   case'help':return openHelp();
+  case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
   case'nbadd':return nbAdd();
