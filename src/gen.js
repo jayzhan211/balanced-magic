@@ -86,5 +86,28 @@ const GEN=[
   const f=`C${c}H${h}${n?'N':''}${o?'O'+(o>1?o:''):''}${x?'Cl':''}`;const cand=[(2*c+2-h)/2,d+1,d-1,d+2,d+3].filter(v=>v>=0&&Number.isInteger(v));
   return{q:`分子式 ${fsub(f)} 的不飽和度（環數 + π 鍵數）是？`,o:opts(d,cand,String),u:'',ex:`不飽和度 = (2C + 2 + N − H − X) / 2 = (${2*c} + 2${n?' + 1':''} − ${h}${x?' − 1':''}) / 2 = ${d}。O 不影響。`}}},
 ];
+
+// ---- 擴充計算題 ----
+GEN.push(
+{u:'計量',l:2,f:r=>{const mol=pick([.5,1,1.5,2],r),m=100*mol,th=56*mol,y=pick([.6,.7,.75,.8,.85,.9],r),act=+(th*y).toFixed(1);
+  return{q:`加熱 ${m} g CaCO₃（M = 100）完全分解，實際得到 ${act} g CaO（M = 56），產率約為？`,o:opts(act/th*100,[act/m*100,th/act*100,100-act/th*100],x=>fmt(x)+'%'),u:'',ex:`理論產量 = ${mol} mol × 56 = ${fmt(th)} g；產率 = ${act} ÷ ${fmt(th)} × 100% ≈ ${fmt(act/th*100)}%。`}}},
+{u:'計量',l:3,f:r=>{const C=[['CH₂O',1,2,1],['CH₄O',1,4,1],['C₂H₄O',2,4,1],['C₂H₆O',2,6,1],['C₃H₈O',3,8,1],['CH₂',1,2,0],['CH₃',1,3,0],['C₃H₄',3,4,0],['C₂H₃O',2,3,1]];
+  const t=pick(C,r),[f,c,h,o]=t,M=12*c+h+16*o,pc=x=>(x/M*100).toFixed(1);const w=shuffle(C.filter(x=>x!==t),r).slice(0,3).map(x=>x[0]);
+  return{q:`某化合物的質量組成：C ${pc(12*c)}%、H ${pc(h)}%${o?`、O ${pc(16*o)}%`:''}。其實驗式為？`,o:[f,...w],u:'',ex:`假設 100 g：C ${pc(12*c)}/12、H ${pc(h)}/1${o?`、O ${pc(16*o)}/16`:''}，化成最簡整數比 = ${c} : ${h}${o?' : '+o:''} → ${f}。`}}},
+{u:'溶解度',l:3,f:r=>{const[s,K]=pick([['AgCl',1.8e-10],['AgBr',5.0e-13],['BaSO₄',1.1e-10]],r),ion=s==='BaSO₄'?['Na₂SO₄','SO₄²⁻']:['NaCl',s==='AgCl'?'Cl⁻':'Br⁻'];
+  const c=pick([.1,.01,.05,.2],r);const ans=K/c;if(s==='AgBr')ion[0]='NaBr';
+  return{q:`${s}（Ksp = ${sci(K)}）在 ${c} M ${ion[0]} 溶液中的莫耳溶解度約為？`,o:opts(ans,[Math.sqrt(K),K,Math.sqrt(K/c)],x=>sci(x)),u:'M',ex:`同離子效應：[${ion[1]}] ≈ ${c} M，s = Ksp / ${c} = ${sci(ans)} M，比在純水中（${sci(Math.sqrt(K))} M）小得多。`}}},
+{u:'溶液',l:2,f:r=>{const[sol,i]=pick([['葡萄糖',1],['NaCl',2],['CaCl₂',3]],r),M=pick([.1,.15,.2,.3],r),T=pick([25,37],r),ans=i*M*0.082*(T+273);
+  return{q:`${T} °C 時，${M} M ${sol} 溶液的滲透壓約為多少 atm？（R = 0.082，視為完全解離）`,o:opts(ans,[M*0.082*(T+273),i*M*0.082*T,i*M*8.314*(T+273)]),u:'atm',ex:`π = iMRT = ${i} × ${M} × 0.082 × ${T+273} ≈ ${fmt(ans)} atm。`}}},
+{u:'電化學',l:3,f:r=>{let a,b;do{a=pick([-3,-2,-1,0],r);b=pick([-2,-1,0],r)}while(a===b);const zn=10**a,cu=10**b,ans=1.10-0.0592/2*Math.log10(zn/cu);
+  return{q:`Zn｜Zn²⁺（${sci(zn,1)} M）‖ Cu²⁺（${sci(cu,1)} M）｜Cu，25 °C 時電池電壓約為？（E° = 1.10 V）`,o:opts(ans,[1.10-0.0592*Math.log10(zn/cu),1.10+0.0592/2*Math.log10(zn/cu),1.10],x=>(+x).toFixed(3)),u:'V',ex:`能斯特：E = E° − (0.0592/n) log Q = 1.10 − (0.0592/2) log(${sci(zn,1)}/${sci(cu,1)}) ≈ ${ans.toFixed(3)} V。Q = [Zn²⁺]/[Cu²⁺]，n = 2。`}}},
+{u:'酸鹼',l:3,f:r=>{const C=pick([.1,.5,1],r),Ka=1.8e-5,Kb=1e-14/Ka,pOH=-Math.log10(Math.sqrt(Kb*C)),pH=14-pOH;
+  return{q:`${C} M CH₃COONa 溶液的 pH 約為？（CH₃COOH 的 Ka = 1.8×10⁻⁵）`,o:opts(pH,[pOH,7,14+Math.log10(C)],fx2),u:'',ex:`CH₃COO⁻ 水解：Kb = Kw/Ka = ${sci(Kb)}；[OH⁻] ≈ √(Kb·C) = ${sci(Math.sqrt(Kb*C))}，pOH = ${fx2(pOH)}，pH = ${fx2(pH)}。`}}},
+{u:'核化學',l:1,f:r=>{const[n,t]=pick([['¹³¹I',8],['³²P',14],['⁶⁰Co',5.3],['¹⁴C',5730],['²²²Rn',3.8]],r),k=pick([2,3,4,5],r),m0=pick([64,80,96,160,200],r),ans=m0/2**k;const unit=n==='¹⁴C'?'年':n==='⁶⁰Co'?'年':'天';
+  return{q:`${n} 的半衰期約 ${t} ${unit}。${m0} mg 的 ${n} 經過 ${fmt(t*k)} ${unit}後剩下幾 mg？`,o:opts(ans,[m0/(2*k),m0/2**(k-1),m0/2**(k+1)]),u:'mg',ex:`經過 ${k} 個半衰期：${m0} × (1/2)^${k} = ${fmt(ans)} mg。`}}},
+{u:'化學平衡',l:2,f:r=>{const K=pick([4,9,16,25,100],r);const forms=[['逆反應',1/K],['係數全部乘以 2',K*K],['係數全部除以 2',Math.sqrt(K)]];const [d,ans]=pick(forms,r);
+  return{q:`某反應的平衡常數 K = ${K}。若改寫成「${d}」，新的平衡常數為？`,o:opts(ans,[K,1/K,K*K,Math.sqrt(K),2*K].filter(x=>x!==ans)),u:'',ex:`逆反應取倒數；係數乘 n 倍，K 變成 n 次方。答案 ${fmt(ans)}。`}}}
+);
+
 const GEN_UNITS=[...new Set(GEN.map(g=>g.u))];
 function genQ(g,r){const x=g.f(r);x.t=g.u;x.lv=g.l;return x}

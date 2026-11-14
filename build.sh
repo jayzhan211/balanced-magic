@@ -16,6 +16,7 @@ const PAIR='$PAIR';
 HTML
 cat src/data.js
 cat src/qbank.js
+cat src/qbank2.js
 cat src/gen.js
 cat src/coop.js
 echo "// @@DATA_END"

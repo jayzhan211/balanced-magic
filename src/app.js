@@ -17,7 +17,7 @@ const shuffle=(a,r=Math.random)=>{a=a.slice();for(let i=a.length-1;i>0;i--){cons
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600)}
 function confetti(){const e=['✨','⚗️','🧪','🌟','💧','🔥'];for(let i=0;i<18;i++){const s=document.createElement('div');s.className='conf';s.textContent=e[i%e.length];s.style.left=Math.random()*100+'vw';s.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),3000)}}
 function ago(ts){const m=Math.round((Date.now()-ts)/6e4);if(m<1)return'剛剛';if(m<60)return m+' 分鐘前';const h=Math.round(m/60);if(h<24)return h+' 小時前';return Math.round(h/24)+' 天前'}
-let TEST=false,TOFF=0;try{TEST=localStorage.getItem('mb_test')==='1';TOFF=TEST?+(localStorage.getItem('mb_toff')||0):0}catch(e){}
+let TEST=false,TOFF=0,TCLOUD=false;try{TEST=localStorage.getItem('mb_test')==='1';TCLOUD=TEST&&localStorage.getItem('mb_tcloud')==='1';TOFF=TEST?+(localStorage.getItem('mb_toff')||0):0}catch(e){}
 function todayStr(off=0){const d=new Date(Date.now()+8*36e5+(TOFF-off)*864e5);return d.toISOString().slice(0,10)}
 const RXM={};RX.forEach(r=>RXM[r[0]]=r);
 const BDM={};BD.forEach(b=>BDM[b[0]]=b);
@@ -48,7 +48,10 @@ function pushEv(e){e.t=Date.now();save.ev.unshift(e);save.ev=save.ev.slice(0,24)
 
 // ===================== 夥伴（Firebase 同步；沒有 Firebase 時單機也能玩） =====================
 let P=null; // 夥伴的公開資料
-const SY={on:false,db:null,timer:null,last:''};
+const SY={on:false,db:null,timer:null,last:'',st:'off',err:''};
+const DOCP=()=>TCLOUD?PAIR+'T':PAIR;
+function setSt(x,e){SY.st=x;if(e)SY.err=String(e).slice(0,120);const el=$('syncst');if(el)el.innerHTML=stIcon()}
+function stIcon(){return{off:'📴',conn:'⏳',ok:'☁️',push:'⏳',err:'⚠️'}[SY.st]||'📴'}
 function sanitize(d){
  if(!d||typeof d!=='object')return null;
  const n=(v,a,b)=>Math.max(a,Math.min(b,Math.floor(+v||0)));
@@ -65,22 +68,23 @@ function sanitize(d){
  const nb=(Array.isArray(d.nb)?d.nb:[]).slice(0,80).filter(a=>a&&Array.isArray(a.o)&&a.o.length===4).map(a=>({id:clip(a.id,24),q:clip(a.q,700),o:a.o.map(x=>clip(x,120)),a:n(a.a,0,3),ex:clip(a.ex,600),t:U2A[a.t]?a.t:'',lv:n(a.lv,1,3),un:clip(a.un,8),ts:n(a.ts,0,9e15)}));
  const nn={};if(d.nn&&typeof d.nn==='object')for(const k in d.nn){const x=d.nn[k];if(x&&typeof x==='object')nn[clip(k,24)]={txt:clip(x.txt,80),ts:n(x.ts,0,9e15)}}
  const rs={};if(d.rs&&typeof d.rs==='object')for(const k in d.rs)if(BDM[k])rs[k]=1;
- return{nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+ const fl=(Array.isArray(d.fl)?d.fl:[]).slice(0,60).filter(f=>f&&Array.isArray(f.o)).map(f=>({id:clip(f.id,24),q:clip(f.q,500),o:f.o.slice(0,4).map(x=>clip(x,120)),a:n(f.a,0,3),t:clip(f.t,12),why:clip(f.why,12),note:clip(f.note,120),ts:n(f.ts,0,9e15)}));
+ return{fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
 }
 function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{pv:3,nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+ return{pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
 }
-function scheduleSync(){if(!SY.on)return;clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
+function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
  if(!SY.on)return;clearTimeout(SY.timer);
- const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last)return;
- try{await SY.db.doc(`balance/${PAIR}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key}catch(e){console.warn('sync',e)}
+ const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last){setSt('ok');return}
+ try{await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key;SY.okAt=Date.now();setSt('ok')}catch(e){console.warn('sync',e);setSt('err',e&&e.message||e)}
 }
 async function restore(){
- try{const snap=await SY.db.doc(`balance/${PAIR}/players/${ME()}`).get({source:'server'});if(!snap.exists)return;
+ try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});if(!snap.exists)return;
   const d=snap.data();if(!d||typeof d.sv!=='string')return;const c=JSON.parse(d.sv);if(!c||!c.v)return;
   const empty=!save.intro&&!Object.keys(save.solved).length;
   if(empty||(+d.svt||0)>(save.svt||0)){save=Object.assign(defSave(),c);clean();_persist();if(empty)toast('☁️ 已從雲端找回你的工房');render()}
@@ -93,13 +97,13 @@ function onPartner(raw){
  if(!$('modal').classList.contains('show'))render();else renderNav();
 }
 async function initSync(){
- if(TEST){try{const fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null');if(fp){P=sanitize(fp);snapLv();render()}}catch(e){}return}
- const cfg=window.__FB_CONFIG;if(!cfg||!window.firebase)return;
+ if(TEST&&!TCLOUD){try{const fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null');if(fp){P=sanitize(fp);snapLv();render()}}catch(e){}return}
+ const cfg=window.__FB_CONFIG;if(!cfg||!window.firebase){setSt('off');return}setSt('conn');
  try{firebase.initializeApp(cfg);await firebase.auth().signInAnonymously();SY.db=firebase.firestore();
   await restore();SY.on=true;
-  SY.db.doc(`balance/${PAIR}/players/${PA()}`).onSnapshot(s=>onPartner(s.exists?s.data():null),e=>console.warn('sync',e));
+  SY.db.doc(`balance/${DOCP()}/players/${PA()}`).onSnapshot(s=>{SY.pAt=Date.now();onPartner(s.exists?s.data():null)},e=>{console.warn('sync',e);setSt('err',e&&e.message||e)});
   pushMine();
- }catch(e){console.warn('sync init',e)}
+ }catch(e){console.warn('sync init',e);setSt('err',e&&e.message||e)}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){save.lastVisit=Date.now();_persist();pushMine()}});
 addEventListener('pagehide',()=>{save.lastVisit=Date.now();_persist();pushMine()});
@@ -163,8 +167,8 @@ function renderNav(){
  $('nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();scrollTo(0,0)});
 }
 function renderHead(){
- $('subt').textContent=`${TEST?'🧪測試中 · ':''}${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
- const T=town();$('hstats').innerHTML=`<button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
+ $('subt').textContent=`${TEST?(TCLOUD?'☁️🧪雲端測試 · ':'🧪測試中 · '):''}${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
+ const T=town();$('hstats').innerHTML=`<button data-a="sync" id="syncst" style="float:right;margin-left:6px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer">${stIcon()}</button><button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
 }
 function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='nbk'){setTimeout(()=>{if(nbNew()){save.nbSeen=Date.now();_persist();renderNav()}},800)}
  const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
@@ -353,7 +357,7 @@ function vGather(){
  h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}${Q.nb?'<span class="pill her">📒 筆記本</span>':''}</div><div class="dq">${Q.q}</div>
   ${PQ.opts.map((o,k)=>`<button class="opt ${PQ.done?(o===PQ.right?'right':k===PQ.pick?'wrong':''):''}" data-a="pans" data-v="${k}" ${PQ.done?'disabled':''}>${o} ${Q.un}</button>`).join('')}`;
  if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div><div class="small" style="text-align:center">${PQ.rw}</div>
-  <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="nbadd" ${PQ.nbd?'disabled':''}>${PQ.nbd?'已收進 📒':'📒 收進筆記本'}</button></div>`;
+  <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="flag" ${PQ.flg?'disabled':''}>${PQ.flg?'已回報':'🚩 題目有問題'}</button><button class="btn" style="flex:1" data-a="nbadd" ${PQ.nbd?'disabled':''}>${PQ.nbd?'已收進 📒':'📒 收進筆記本'}</button></div>`;
  h+=`</div><div class="small">今天你答了 ${(save.pday&&save.pday[0]===todayStr())?save.pday[1]:0} 題${save.qwrong.length?` · 錯題本 ${save.qwrong.length} 題（會再出現）`:''}<br>題目難度會跟著你自己的答對率調整，兩個人各自是各自的程度；不論誰答對，學徒都一樣長大。覺得有意思、容易錯的題目，按「📒 收進筆記本」，兩個人都看得到，也可以在下面留筆記。</div>`;
  return h;
 }
@@ -439,6 +443,8 @@ let resetArm=false;
 function unitRows(list){return list.map(u=>{const[a,b]=uStat(u),n=a+b,ra=recentAcc(u),acc=ra??(n?a/n:0);return[u,a,n,acc]}).sort((x,y)=>(x[2]?x[3]:2)-(y[2]?y[3]:2)).map(([u,a,n,acc])=>`<tr><td style="text-align:left">${u}</td><td>${n?a+'/'+n:'·'}</td><td style="width:40%"><div class="bar" style="height:7px;border-radius:4px;background:#eadfc6;overflow:hidden"><i style="display:block;height:100%;width:${acc*100}%;background:${acc>=.75?'var(--ok)':acc>=.5?'var(--gold2)':'var(--bad)'}"></i></div></td><td>${'★'.repeat(lvFor(u))}</td></tr>`).join('')}
 function vBook(){
  let h=`<div class="sec">單元答對率<small>只有你自己看得到；最弱的排在最上面，出題時會多出這些單元</small></div><div class="card"><div class="small" style="margin-bottom:4px">普通化學</div><table class="hist" style="width:100%">${unitRows(UNITS_G)}</table><div class="small" style="margin:8px 0 4px">有機化學</div><table class="hist" style="width:100%">${unitRows(UNITS_O)}</table><div class="small" style="margin-top:6px">長條是最近 10 題的答對率；★ 是這個單元目前的出題難度。每答一題都會微調，目標是讓答對率停在 70% 左右：連續答對就升級，答不出來就降級。</div></div>`;
+ const fls=flagList();
+ h+=`<div class="sec">🚩 題目回報清單<small>${fls.length} 題（兩人合併）</small></div>`+(fls.length?`<div class="card small">${fls.slice(0,8).map(f=>`<div style="margin-bottom:6px">【${f.t}】${esc(f.why||'')} ${esc(f.note||'')}<br><span style="color:var(--dim)">${esc(f.q.slice(0,60))}…</span></div>`).join('')}<button class="btn gold" data-a="flagcopy">📋 全部複製（貼給 Claude 修）</button><textarea id="flbox" style="display:none;width:100%;height:140px;margin-top:6px;font-size:12px">${esc(flagText())}</textarea></div>`:`<div class="muted" style="margin-bottom:8px">練習時遇到有問題的題目，按「🚩 題目有問題」就會記在這裡。</div>`);
  h+=`<div class="sec">原理卡<small>${Object.keys(save.quiz).length}/${BD.length}</small></div>`;
  const cs=BD.filter(b=>save.quiz[b[0]]);
  h+=cs.length?cs.map(b=>`<div class="card cardk"><h3>📘 ${b[7][0]}</h3><div class="small">${b[2]} ${b[3]}　·　${b[7][1]}</div></div>`).join(''):`<div class="muted">建築落成後，回答委託人的「為什麼」就能拿到原理卡。</div>`;
@@ -492,6 +498,14 @@ const plain=h=>String(h).replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').rep
 const rich=t=>esc(t).replace(/\n/g,'<br>');
 function nbAll(){const m=save.nb.map(e=>({...e,by:ME()})),p=P?P.nb.map(e=>({...e,by:PA()})):[];return[...m,...p].sort((x,y)=>y.ts-x.ts)}
 function nbNew(){if(!P)return 0;const t=save.nbSeen||0;return P.nb.filter(e=>e.ts>t).length+Object.values(P.nn).filter(x=>x.ts>t&&x.txt).length}
+function flagQ(){if(!PQ||!PQ.done||PQ.flg)return;const Q=PQ.Q;modal(`<h3>🚩 回報題目</h3><div class="small">哪裡怪怪的？（會存在回報清單，之後一次整理給 Claude 修）</div>
+ <div class="inv" style="margin:8px 0">${['答案錯了','選項不只一個對','題目看不懂','解說不清楚','太簡單','超出範圍'].map(t=>`<span class="chip zero" data-a="flagr" data-v="${t}">${t}</span>`).join('')}</div>
+ <textarea id="flt" maxlength="120" placeholder="（可以補充說明）" style="width:100%;height:60px;border-radius:10px;border:1px solid var(--line);padding:8px;font-family:inherit;font-size:14px;background:#fffdf7"></textarea>
+ <button class="btn gold" data-a="flagsave">送出回報</button><button class="btn ghost" data-a="close">取消</button>`)}
+let FLR='';
+function flagSave(){const Q=PQ.Q;save.fl=save.fl||[];save.fl.unshift({id:ME()+Date.now().toString(36),q:plain(Q.q).slice(0,500),o:PQ.opts.map(plain),a:PQ.opts.indexOf(PQ.right),t:Q.t,why:FLR,note:($('flt').value||'').slice(0,120),ts:Date.now()});save.fl=save.fl.slice(0,60);PQ.flg=true;FLR='';persist();toast('🚩 已記下，謝謝！');closeM()}
+function flagList(){const all=[...(save.fl||[]).map(f=>({...f,by:ME()})),...(P&&P.fl?P.fl.map(f=>({...f,by:PA()})):[])].sort((a,b)=>b.ts-a.ts);return all}
+function flagText(){return flagList().map((f,i)=>`#${i+1}【${f.t}】${f.why||''}${f.note?'：'+f.note:''}（${NM[f.by]}）\n題目：${f.q}\n選項：${f.o.map((o,k)=>(k===f.a?'✓':'')+o).join(' ｜ ')}`).join('\n\n')}
 function nbAdd(){
  if(!PQ||!PQ.done||PQ.nbd)return;const Q=PQ.Q;
  save.nb.unshift({id:ME()+Date.now().toString(36),q:plain(Q.q),o:PQ.opts.map(plain),a:PQ.opts.indexOf(PQ.right),ex:plain(Q.ex),t:Q.t,lv:Q.lv,un:Q.un||'',ts:Date.now()});
@@ -599,15 +613,21 @@ function openHelp(){
 }
 
 
+
+function syncPanel(){const L={off:'📴 單機模式：沒有連上雲端（網路或 Firebase 沒載入），進度只存在這台裝置。',conn:'⏳ 正在連線……',ok:'☁️ 已同步',push:'⏳ 有新進度，正在上傳……',err:'⚠️ 同步失敗'};
+ modal(`<h3>同步狀態</h3><div class="ex">${L[SY.st]||L.off}${SY.st==='err'?`<br><span class="small">${esc(SY.err)}</span>`:''}</div>
+ <div class="small">${SY.okAt?`上次成功上傳：${ago(SY.okAt)}`:'還沒上傳過'}<br>${P?`${paN()}最後一次存檔：${P.ts?ago(P.ts):'—'}`:`還沒收到${paN()}的資料（${paN()}可能還沒開過遊戲）`}${TEST?`<br>🧪 測試模式：${TCLOUD?'連著「雲端測試空間」，不會碰到真實存檔':'單機，不連雲端'}`:''}</div>
+ ${SY.on?'<button class="btn" data-a="syncnow">立刻上傳一次</button>':''}<button class="btn ghost" data-a="close">關閉</button>`)}
+
 // ===================== 🧪 測試模式（獨立存檔、不同步雲端） =====================
 function dbgPanel(){
- if(!TEST){modal(`<h3>🧪 測試模式</h3><div class="muted">進入後會用<b>另一份獨立的存檔</b>，不連雲端、不影響你和${paN()}的真實進度。可以快轉學徒、蓋房子、模擬${paN()}的動作、跳到隔天，看看之後會長怎樣。離開測試模式就回到真實存檔。</div><button class="btn gold" data-a="dbgon">進入測試模式</button><button class="btn ghost" data-a="close">取消</button>`);return}
+ if(!TEST){modal(`<h3>🧪 測試模式</h3><div class="muted">進入後會用<b>另一份獨立的存檔</b>，不連雲端、不影響你和${paN()}的真實進度。可以快轉學徒、蓋房子、模擬${paN()}的動作、跳到隔天，看看之後會長怎樣。離開測試模式就回到真實存檔。</div><button class="btn gold" data-a="dbgon">進入測試模式（單機）</button><button class="btn" data-a="dbgcloud">☁️ 進入「雲端測試」模式</button><div class="small" style="margin-top:6px">雲端測試：兩台裝置（或兩個瀏覽器）都進這個模式，一台選傑、一台選彣，就能真的測同步，用的是另一個雲端空間，不會碰到真實存檔。</div><button class="btn ghost" data-a="close">取消</button>`);return}
  const B=(a,t,v='')=>`<button class="btn" style="margin-top:6px;padding:9px" data-a="${a}" data-v="${v}">${t}</button>`;
- modal(`<h3>🧪 測試工具</h3><div class="small">目前：${meN()} 的測試存檔 · 日期 ${todayStr()}${TOFF?`（快轉 ${TOFF} 天）`:''}</div>
+ modal(`<h3>🧪 測試工具</h3><div class="small">${TCLOUD?'☁️ 雲端測試模式（會真的同步到測試空間）':'🧪 單機測試模式'} · 身分：${meN()}（連點標題 5 下可換）· 日期 ${todayStr()}${TOFF?`（快轉 ${TOFF} 天）`:''}</div>
  <div class="sec">學徒</div>${B('d_xp','每位學徒 +5 題答對（升一級左右）',5)}${B('d_xp','每位學徒 +30 題答對',30)}<div class="inv" style="margin-top:6px">${APP.map(a=>`<span class="chip" data-a="d_xp1" data-v="${a.id}">${a.ic}${a.nm} +10</span>`).join('')}</div>
  <div class="sec">材料與工房</div>${B('d_raw','原料各 +20')}${B('d_all','所有物質各 +10')}${B('d_solve','所有反應直接算已配平')}
  <div class="sec">小鎮</div>${B('d_b1','蓋好下一棟能蓋的')}${B('d_bu','蓋好所有已解鎖的')}${B('d_ball','全部 30 棟直接蓋好（無視鎖）')}
- <div class="sec">模擬${paN()}</div>${B('d_p','產生${paN()}的進度（答題、捐建築、今日答對 8 題）')}${B('d_pnb','${paN()}收一題進筆記本')}${B('d_pnn','${paN()}在我收的題目下留筆記')}${B('d_rs','所有研究課題直接完成')}
+ <div class="sec">模擬${paN()}</div>${TCLOUD?B('d_tcwipe','清空我在雲端測試空間的存檔'):''}${TCLOUD?'':B('d_p','產生${paN()}的進度（答題、捐建築、今日答對 8 題）')}${TCLOUD?'':B('d_pnb','${paN()}收一題進筆記本')+B('d_pnn','${paN()}在我收的題目下留筆記')}${B('d_rs','所有研究課題直接完成')}
  <div class="sec">時間</div>${B('d_day','跳到明天（測每日目標、出師寄材料）')}
  <div class="sec">其他</div>${B('d_wipe','清空測試存檔，從頭開始')}<button class="btn gold" data-a="dbgoff">離開測試模式（回到真實存檔）</button><button class="btn ghost" data-a="close">關閉</button>`);
 }
@@ -617,8 +637,10 @@ function dbgBuild(b){save.don[b[0]]=Object.assign({},b[4])}
 function dbg(a,v){
  const done=t=>{persist();checkLv();checkGoal();claimWork();toast('🧪 '+t);dbgPanel();renderHead()};
  switch(a){
-  case'dbgon':try{localStorage.setItem('mb_test','1');localStorage.setItem('mb_toff','0')}catch(e){}return location.reload();
-  case'dbgoff':try{localStorage.removeItem('mb_test');localStorage.removeItem('mb_toff')}catch(e){}return location.reload();
+  case'dbgon':try{localStorage.setItem('mb_test','1');localStorage.setItem('mb_toff','0');localStorage.removeItem('mb_tcloud')}catch(e){}return location.reload();
+  case'dbgcloud':try{localStorage.setItem('mb_test','1');localStorage.setItem('mb_toff','0');localStorage.setItem('mb_tcloud','1')}catch(e){}return location.reload();
+  case'd_tcwipe':save=defSave();save.intro=true;_persist();SY.last='';pushMine();toast('🧪 雲端測試存檔已清空（另一台也要各自清）');closeM();return render();
+  case'dbgoff':try{localStorage.removeItem('mb_test');localStorage.removeItem('mb_toff');localStorage.removeItem('mb_tcloud')}catch(e){}return location.reload();
   case'd_xp':APP.forEach(ap=>{for(let i=0;i<+v;i++){const u=ap.u[i%ap.u.length];const x=save.us[u]||[0,0];x[0]++;save.us[u]=x}});return done(`每位學徒 +${v}`);
   case'd_xp1':{const ap=APPM[v];for(let i=0;i<10;i++){const u=ap.u[i%ap.u.length];const x=save.us[u]||[0,0];x[0]++;save.us[u]=x}return done(`${ap.nm} +10`)}
   case'd_raw':Object.keys(IT).filter(isRaw).forEach(i=>addInv(i,20));return done('原料各 +20');
@@ -651,7 +673,13 @@ function act(a,v,el){
  switch(a){
   case'close':return closeM();
   case'help':return openHelp();
+  case'sync':return syncPanel();
+  case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
   case'nbadd':return nbAdd();
+  case'flag':return flagQ();
+  case'flagr':FLR=v;document.querySelectorAll('[data-a=flagr]').forEach(x=>x.classList.toggle('zero',x.dataset.v!==v));return;
+  case'flagsave':return flagSave();
+  case'flagcopy':{const t=flagText();try{navigator.clipboard.writeText(t).then(()=>toast('已複製，貼給 Claude 就好'),()=>{$('flbox').style.display='block'})}catch(e){$('flbox').style.display='block'}return}
   case'nbf':NBF=v;return render();
   case'nbnote':return nbNote(v);
   case'nbh':{const t=$('nbt');t.value=(t.value?t.value+' ':'')+v;return}
