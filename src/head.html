@@ -140,6 +140,13 @@ table.tally td.n{color:var(--bad);font-weight:700}
 .hist td{padding:2px 8px;font-size:13px;text-align:center}
 .foot{text-align:center;margin-top:20px}
 .foot button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:12px;padding:5px 10px;cursor:pointer}
+.bb{animation:bob 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.walk{animation:walk 20s linear infinite}
+@keyframes walk{0%{transform:translateX(-20px)}50%{transform:translateX(370px)}50.01%{transform:translateX(370px) scaleX(-1)}100%{transform:translateX(-20px) scaleX(-1)}}
+.smk{animation:smk 2.4s ease-out infinite}
+@keyframes smk{0%{opacity:.8;transform:translateY(0)}100%{opacity:0;transform:translateY(-14px)}}
+.tw{animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2}}
 </style>
 </head>
 <body>

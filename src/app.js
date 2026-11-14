@@ -179,6 +179,7 @@ function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d
 function vTown(){
  let h='';
  const T=town();
+ h+=townSVG();
  h+=`<div class="card"><div class="tagrow"><b style="font-family:'Noto Serif TC',serif;color:#6b4a1c">🏘️ 我們的小鎮</b><span class="small">人口 ${T.pop} · 心情 ${T.mood>.8?'😊':T.mood>.5?'🙂':T.mood>.3?'😐':'😟'}</span></div>
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0 4px;text-align:center">${NEEDS.map(([k,ic,l])=>`<div><div style="font-size:18px">${ic}</div><div style="height:34px;background:#eadfc6;border-radius:5px;position:relative;overflow:hidden;margin:2px 6px"><i style="position:absolute;left:0;right:0;bottom:0;height:${Math.round(T.sat[k]*100)}%;background:${T.sat[k]>.7?'var(--ok)':T.sat[k]>.35?'var(--gold2)':'var(--bad)'}"></i></div><div class="small">${l}</div></div>`).join('')}</div>
   <div class="small">鎮民心聲：${NEEDMSG[T.low]}${T.fix?`　→ 蓋「${T.fix[2]}${T.fix[3]}」會有幫助${unlocked(T.fix[0])?'':`（要先把 ${APPM[BX[T.fix[0]][0]].ic}${APPM[BX[T.fix[0]][0]].nm} 教到 Lv${BX[T.fix[0]][1]}）`}`:''}</div>
@@ -608,6 +609,41 @@ function openApp(id){const a=APPM[id];const units=a.u.map(u=>`<span class="chip 
 }
 
 
+
+
+// ===================== 會長大的小鎮插畫 =====================
+const POS={house:[34,222],smithy:[72,240],granary:[108,214],lantern:[30,190],zincpot:[70,200],firewatch:[112,246],
+ guild:[178,222],vault:[214,240],greenhouse:[246,214],bathhouse:[182,190],chapel:[216,186],mint:[250,246],academy:[276,206],
+ thunder:[318,108],clinic:[302,238],farm:[336,250],acidworks:[300,178],bridge:[156,206],railway:[198,256],bakery:[274,244],beacon:[346,160],spire:[334,72],
+ tavern:[28,150],soapery:[62,156],apothecary:[96,148],dyehouse:[128,160],minelamp:[22,122],orchard:[56,124],vinegary:[90,118],belltower:[122,104]};
+const FOLK=['🧑‍🌾','👩‍🍳','🧒','👵','🧑‍🔧','👩‍🎨','🐕','👨‍🏫','🐈','👧','🧑‍🎓','🐓'];
+function townSVG(){
+ const T=town(),h=new Date(Date.now()+8*36e5).getUTCHours(),night=h<6||h>=19,dusk=h>=17&&h<19;
+ const sky=night?['#1b2442','#3a4470']:dusk?['#f6b26b','#f9dfb0']:['#9fd0f0','#eaf6fb'];
+ const lit=T.sat['光']>0;let g='';
+ g+=`<defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs>`;
+ g+=`<rect width="360" height="270" fill="url(#sk)"/>`;
+ if(night){for(let i=0;i<22;i++){const x=(i*73)%360,y=(i*37)%70+5;g+=`<circle cx="${x}" cy="${y}" r="${i%3?0.8:1.3}" fill="#fff" class="tw" style="animation-delay:${(i%7)*.4}s"/>`}g+=`<circle cx="300" cy="30" r="12" fill="#f4f1d0"/><circle cx="305" cy="26" r="11" fill="${sky[0]}"/>`}
+ else g+=`<circle cx="${dusk?60:300}" cy="${dusk?70:32}" r="14" fill="${dusk?'#f08a4b':'#ffe08a'}"/>`;
+ g+=`<path d="M0 120 Q60 70 120 100 T240 95 T360 70 L360 270 L0 270Z" fill="${night?'#2c3a3a':'#a8c99a'}"/>`;
+ g+=`<path d="M260 270 L280 120 Q320 40 360 90 L360 270Z" fill="${night?'#34413f':'#9bbf8c'}"/>`;
+ g+=`<path d="M0 135 Q40 95 90 100 Q130 90 150 120 L150 170 L0 175Z" fill="${night?'#20352a':'#7fb07a'}"/>`;
+ for(let i=0;i<9;i++)g+=`<text x="${8+i*16}" y="${100+(i%3)*6}" font-size="14">🌲</text>`;
+ g+=`<rect x="0" y="170" width="360" height="100" fill="${night?'#3d4a3a':'#cfe0a8'}"/>`;
+ g+=`<path d="M150 90 Q160 140 148 180 Q140 220 158 270" stroke="${night?'#2d4f6b':'#7cc1e4'}" stroke-width="12" fill="none" stroke-linecap="round"/>`;
+ g+=`<path d="M0 232 L360 228" stroke="${night?'#5a5040':'#e8d6a8'}" stroke-width="9"/>`;
+ g+=[['霧谷村',40,264],['王都',214,268],['賢者之塔',300,58],['森林學院',40,92]].map(([t,x,y])=>`<text x="${x}" y="${y}" font-size="8" fill="${night?'#cfd8e8':'#6b4a1c'}" opacity=".75" text-anchor="middle">${t}</text>`).join('');
+ BD.forEach(b=>{const p=POS[b[0]];if(!p)return;const d=bDone(b[0]),ul=unlocked(b[0]);
+  if(d){if(night&&lit)g+=`<circle cx="${p[0]+6}" cy="${p[1]-6}" r="7" fill="#ffd76a" opacity=".35"/>`;
+   g+=`<text x="${p[0]}" y="${p[1]}" font-size="20" text-anchor="middle" class="bb" data-a="bld" data-v="${b[0]}" style="cursor:pointer;animation-delay:${(p[0]%7)*.3}s">${b[2]}</text>`;
+   if(['smithy','acidworks','zincpot','bakery'].includes(b[0]))g+=`<circle cx="${p[0]+5}" cy="${p[1]-20}" r="3" fill="#ddd" class="smk"/><circle cx="${p[0]+8}" cy="${p[1]-24}" r="2.4" fill="#eee" class="smk" style="animation-delay:.8s"/>`}
+  else g+=`<text x="${p[0]}" y="${p[1]}" font-size="${ul?13:9}" text-anchor="middle" opacity="${ul?.75:.35}" data-a="bld" data-v="${b[0]}" style="cursor:pointer">${ul?'🚧':'·'}</text>`});
+ const nf=Math.min(FOLK.length,Math.floor(T.built*1.2)+(T.built?1:0));
+ for(let i=0;i<nf;i++){const y=226+(i%3)*5,dur=14+i*3;g+=`<text x="0" y="${y}" font-size="11" class="walk" style="animation-duration:${dur}s;animation-delay:-${i*2.3}s">${FOLK[i]}</text>`}
+ if(night&&lit)for(let i=0;i<6;i++)g+=`<circle cx="${20+i*64}" cy="222" r="2.2" fill="#ffe08a"/><circle cx="${20+i*64}" cy="222" r="7" fill="#ffe08a" opacity=".25"/>`;
+ return`<div class="card" style="padding:0;overflow:hidden"><svg viewBox="0 0 360 270" style="display:block;width:100%">${g}</svg>
+ <div style="padding:8px 12px" class="small">${T.built?`${T.built} 棟建築、${T.pop} 位鎮民${night?(lit?' · 夜裡街燈亮著':' · 晚上一片漆黑，鎮民希望有燈'):''}`:'還是一片空地。蓋好第一棟房子，鎮民就會搬進來。'}　點地圖上的房子或 🚧 可以打開。</div></div>`;
+}
 
 // ===================== 新手任務 =====================
 const TUT=[
