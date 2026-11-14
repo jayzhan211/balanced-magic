@@ -912,7 +912,7 @@ const meN=()=>NM[ME()], paN=()=>NM[PA()];
 const KEY=()=>(TEST?'mb_test_':'mb_save_')+ROLE;
 
 // ===================== 存檔 =====================
-function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
 let save=load();
 function clean(){
@@ -943,13 +943,16 @@ function sanitize(d){
  const ask=(Array.isArray(d.ask)?d.ask:[]).slice(0,12).filter(a=>a&&Array.isArray(a.o)&&a.o.length===4).map(a=>({id:clip(a.id,24),q:clip(a.q,700),o:a.o.map(x=>clip(x,120)),a:n(a.a,0,3),ex:clip(a.ex,600),t:U2A[a.t]?a.t:'',lv:n(a.lv,1,3),un:clip(a.un,8),ts:n(a.ts,0,9e15)}));
  const rp={};if(d.rep2&&typeof d.rep2==='object')for(const k in d.rep2){const r=d.rep2[k];if(r&&typeof r==='object')rp[clip(k,24)]={p:n(r.p,0,3),ok:!!r.ok,h:r.h==null?-1:n(r.h,-1,HINTS.length-1),ts:n(r.ts,0,9e15)}}
  const pd=Array.isArray(d.pd)?[clip(d.pd[0],10),n(d.pd[1],0,9999)]:['',0];
- return{uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+ const nb=(Array.isArray(d.nb)?d.nb:[]).slice(0,80).filter(a=>a&&Array.isArray(a.o)&&a.o.length===4).map(a=>({id:clip(a.id,24),q:clip(a.q,700),o:a.o.map(x=>clip(x,120)),a:n(a.a,0,3),ex:clip(a.ex,600),t:U2A[a.t]?a.t:'',lv:n(a.lv,1,3),un:clip(a.un,8),ts:n(a.ts,0,9e15)}));
+ const nn={};if(d.nn&&typeof d.nn==='object')for(const k in d.nn){const x=d.nn[k];if(x&&typeof x==='object')nn[clip(k,24)]={txt:clip(x.txt,80),ts:n(x.ts,0,9e15)}}
+ const rs={};if(d.rs&&typeof d.rs==='object')for(const k in d.rs)if(BDM[k])rs[k]=1;
+ return{nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
 }
 function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{pv:2,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+ return{pv:3,nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
 }
 function scheduleSync(){if(!SY.on)return;clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
@@ -1015,6 +1018,9 @@ function evText(e,who,short){
   case'gift':return`寄了 ${it?nm(e.it):'?'}×${e.n} 給${who===ME()?paN():meN()}`;
   case'alv':return`和${who===ME()?paN():meN()}一起把 ${APPM[e.a]?APPM[e.a].ic+APPM[e.a].nm:'?'} 教到了 Lv${e.n}${e.n>=GRAD?'（出師）':''}`;
   case'ask':return`請教了一題${e.u?'（'+e.u+'）':''}`;
+  case'nb':return`收了一題進筆記本${e.u?'（'+e.u+'）':''}`;
+  case'nn':return`在筆記本留了一則筆記`;
+  case'rs':return`完成了研究課題，「${b?b[3]:'?'}」可以開工了 🔬`;
   case'reply':return`回覆了一題請教`;
   case'goal':return`今天和${who===ME()?paN():meN()}一起達成了每日目標 🎉`;
   case'card':return`解開了「${b?b[3]:'?'}」的原理卡`;
@@ -1031,18 +1037,18 @@ function makers(id){return RX.filter(r=>chOpen(r[1])&&r[4].some(([x])=>x===id))}
 
 // ===================== 畫面 =====================
 let TAB='gather';
-const TABS=[['gather','📝','練習'],['town','🏘️','小鎮'],['acad','🎓','學院'],['lab','⚗️','工房'],['book','📘','筆記']];
+const TABS=[['gather','📝','練習'],['town','🏘️','小鎮'],['acad','🎓','學院'],['nbk','📒','筆記本'],['lab','⚗️','工房']];
 function renderNav(){
- const aDot=inbox().length+newReplies().length>0;
- $('nav').innerHTML=TABS.map(([k,ic,n])=>`<button class="${TAB===k?'on':''}" data-tab="${k}"><span>${ic}</span>${n}${k==='acad'&&aDot?'<i class="dot"></i>':''}</button>`).join('');
+ const aDot=0,nDot=nbNew()>0;
+ $('nav').innerHTML=TABS.map(([k,ic,n])=>`<button class="${TAB===k?'on':''}" data-tab="${k}"><span>${ic}</span>${n}${k==='nbk'&&nDot?'<i class="dot"></i>':''}</button>`).join('');
  $('nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();scrollTo(0,0)});
 }
 function renderHead(){
  $('subt').textContent=`${TEST?'🧪測試中 · ':''}${meN()}與${paN()}的小鎮 · ${BD.filter(b=>bDone(b[0])).length}/${BD.length} 棟`;
  const T=town();$('hstats').innerHTML=`<button data-a="help" style="float:right;margin-left:8px;border:1px solid var(--line);background:var(--paper);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer">❓</button><span style="white-space:nowrap">人口 <b>${T.pop}</b></span><br><span style="white-space:nowrap">今日 ${Math.min(teamToday(),GOAL)}/${GOAL}</span>`;bind($('hstats'));
 }
-function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='acad'){const nr=newReplies();setTimeout(()=>{if(nr.length){nr.forEach(a=>save.askSeen[a.id]=1);_persist();renderNav()}},50)}
- const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook}[TAB]();$('main').innerHTML=h;bind();
+function render(){if(TEST&&!$('tbadge')){const d=document.createElement('div');d.id='tbadge';d.innerHTML='🧪';d.title='測試工具';d.style.cssText='position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#4a3412;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 3px 10px #0004;cursor:pointer';d.onclick=dbgPanel;document.body.appendChild(d)}renderHead();renderNav();if(TAB==='nbk'){setTimeout(()=>{if(nbNew()){save.nbSeen=Date.now();_persist();renderNav()}},800)}
+ const h={town:vTown,lab:vLab,gather:vGather,acad:vAcademy,book:vBook,nbk:vNotebook}[TAB]();$('main').innerHTML=h;bind();
  $('foot').innerHTML=TAB==='book'?`<button data-a="help" style="margin-right:8px">📖 玩法介紹</button><button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
 
 // ---- 城鎮 ----
@@ -1062,7 +1068,7 @@ function vTown(){
   h+=`<div class="sec">${CHN[c].split(' · ')[1]}<small>${chDoneN(c)}/${list.length}</small></div><div class="town">`;
   list.forEach(b=>{const d=bDone(b[0]),[m,q]=bPct(b[0]),ul=unlocked(b[0]);const can=ul&&!d&&Object.keys(b[4]).some(i=>inv(i)>0&&prog(b[0])[i].me+prog(b[0])[i].pa<b[4][i]);
    const qz=d&&!save.quiz[b[0]],x=BX[b[0]];
-   h+=`<div class="bld ${d?'done':'wip'}" data-a="bld" data-v="${b[0]}" ${ul?'':'style="opacity:.55"'}>${can?'<span class="need">● 可捐</span>':''}${qz?'<span class="need">❓</span>':''}<div class="ic">${b[2]}</div><div class="nm">${b[3]}</div>${d?'<div class="small">落成</div>':ul?`<div class="bar"><i style="width:${(m+q)*100}%;background:linear-gradient(90deg,var(--me),var(--her))"></i></div>`:`<div class="small">🔒 ${APPM[x[0]].ic}${APPM[x[0]].nm} Lv${x[1]}</div>`}</div>`});
+   h+=`<div class="bld ${d?'done':'wip'}" data-a="bld" data-v="${b[0]}" ${ul?'':'style="opacity:.55"'}>${can?'<span class="need">● 可捐</span>':''}${qz?'<span class="need">❓</span>':''}<div class="ic">${b[2]}</div><div class="nm">${b[3]}</div>${d?'<div class="small">落成</div>':ul?`<div class="bar"><i style="width:${(m+q)*100}%;background:linear-gradient(90deg,var(--me),var(--her))"></i></div>`:appLv(x[0])>=x[1]?`<div class="small">🔬 待研究</div>`:`<div class="small">🔒 ${APPM[x[0]].ic}${APPM[x[0]].nm} Lv${x[1]}</div>`}</div>`});
   h+=`</div>`;
  });
  // 動態
@@ -1075,6 +1081,7 @@ function openBld(id){
  let h=`<h3>${b[2]} ${b[3]}</h3><div class="muted">${b[5]}</div>`;
  const x=BX[id],ul=unlocked(id);
  h+=`<div class="small" style="margin-top:6px">對小鎮：${Object.entries(x[2]).map(([k,v])=>NEEDS.find(n=>n[0]===k)[1]+'+'+v).join(' ')}　·　需要 ${APPM[x[0]].ic}${APPM[x[0]].nm} Lv${x[1]}${ul?' ✓':`（目前 Lv${appLv(x[0])}）`}</div>`;
+ if(appLv(x[0])>=x[1]&&!ul){modal(h+`<div class="ex">🔬 這棟需要先完成<b>研究課題</b>（3 題 ★★★，答對 2 題）。${myRole()==='sch'?'你是學者，可以開始研究。':`這是學者的工作${P&&P.role==='sch'?`，可以等${paN()}來做，或`:'，'}在學院把自己換成學者也行。`}</div>${myRole()==='sch'?`<button class="btn gold" data-a="rsgo" data-v="${id}">🔬 開始研究</button>`:''}<button class="btn ghost" data-a="close">關閉</button>`);return}
  if(!ul){modal(h+`<div class="ex">${APPM[x[0]].nm}還沒學到能蓋這棟的程度。再一起答對 ${ALV[x[1]-1]-appXP(x[0])} 題「${APPM[x[0]].tp}」就行了。</div><button class="btn gold" data-a="teach" data-v="${x[0]}">📝 去上${APPM[x[0]].nm}的課</button><button class="btn ghost" data-a="close">關閉</button>`);return}
  for(const i in p){const x=p[i],tot=x.me+x.pa,left=Math.max(0,x.need-tot);
   const a=Math.min(x.me,x.need),bb=Math.min(x.pa,x.need-a);
@@ -1176,9 +1183,9 @@ function openCraft(id,q,pre=''){
 let CRAFT=null;
 function craft(q){
  const r=RXM[CRAFT];if(maxRuns(r)<q)return;
- r[3].forEach(([i,c])=>addInv(i,-c*q));r[4].forEach(([i,c])=>addInv(i,c*q));
+ r[3].forEach(([i,c])=>addInv(i,-c*q));r[4].forEach(([i,c])=>addInv(i,c*q));const bonus=myRole()==='art'?q:0;if(bonus)addInv(r[4][0][0],bonus);
  const first=!save.made[r[0]];save.made[r[0]]=(save.made[r[0]]||0)+q;if(first)save.rep+=2;persist();
- toast(`${OPN[r[2]][1]} 得到 ${r[4].map(([i,c])=>nm(i)+'×'+c*q).join('、')}`);
+ toast(`${OPN[r[2]][1]} 得到 ${r[4].map(([i,c],k)=>nm(i)+'×'+(c*q+(k===0?bonus:0))).join('、')}${bonus?'（工匠加成）':''}`);
  openCraft(CRAFT,1);
 }
 function openItem(id){
@@ -1213,6 +1220,7 @@ function scopeUnits(){const f=(save.focusA||[]).filter(a=>APPM[a]);return f.leng
 function scopeLabel(){const f=(save.focusA||[]).filter(a=>APPM[a]);if(!f.length)return'弱點優先（全部學徒）';return f.map(a=>APPM[a].ic+APPM[a].nm).join('、')}
 let SCOPE_OPEN=false;
 function newPQ(){const p=pickQ();let Q;
+ if(p.nbe){const e=p.nbe;Q={q:rich(e.q),o:e.o.map(rich),ex:rich(e.ex),t:e.t,lv:e.lv,un:e.un,qi:-1,nb:1};PQ={Q,right:Q.o[e.a],opts:shuffle(Q.o),done:false,nbd:true};return}
  if(p.gen)Q={q:p.gen.q,o:p.gen.o,ex:p.gen.ex,t:p.gen.t,lv:p.gen.lv,un:p.gen.u,qi:-1};else{const q=QB[p.bank];Q={q:q[0],o:q[1],ex:q[2],t:q[3],lv:q[4],un:'',qi:p.bank}}
  PQ={Q,right:Q.o[0],opts:shuffle(Q.o),done:false}}
 function chipA(a){const on=(save.focusA||[]).includes(a.id);return`<span class="chip ${on?'':'zero'}" style="${on?'border-color:var(--gold);background:#fbefd3':''}" data-a="fa" data-v="${a.id}">${a.ic} ${a.nm}<b style="font-weight:400;font-size:11px">${a.tp} · Lv${appLv(a.id)}</b></span>`}
@@ -1221,24 +1229,24 @@ function vGather(){
  if(SCOPE_OPEN){h+=`<div class="row" style="margin-top:8px"><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="auto">弱點優先</button><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="g">普化學徒</button><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="o">有機學徒</button></div>
   <div class="small" style="margin:10px 0 4px">或勾選想教的學徒（每位負責幾個單元）</div><div class="inv">${APP.map(chipA).join('')}</div>`}
  h+=`<div style="margin-top:8px">${goalBar()}</div></div>`;
- const ib=inbox().length;if(ib)h+=`<div class="banner" data-a="tab" data-v="acad" style="cursor:pointer">✉️ ${paN()}有 ${ib} 題想請教你 →</div>`;
+ const nw=nbNew();if(nw)h+=`<div class="banner" data-a="tab" data-v="nbk" style="cursor:pointer">📒 筆記本有 ${nw} 則${paN()}新寫的東西 →</div>`;
  if(!PQ)newPQ();const Q=PQ.Q,ap=APPM[U2A[Q.t]];
- h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}</div><div class="dq">${Q.q}</div>
+ h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}${Q.nb?'<span class="pill her">📒 筆記本</span>':''}</div><div class="dq">${Q.q}</div>
   ${PQ.opts.map((o,k)=>`<button class="opt ${PQ.done?(o===PQ.right?'right':k===PQ.pick?'wrong':''):''}" data-a="pans" data-v="${k}" ${PQ.done?'disabled':''}>${o} ${Q.un}</button>`).join('')}`;
  if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div><div class="small" style="text-align:center">${PQ.rw}</div>
-  <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="askq" ${PQ.asked?'disabled':''}>${PQ.asked?'已寄出 ✉️':'✉️ 請教'+paN()}</button></div>`;
- h+=`</div><div class="small">今天你答了 ${(save.pday&&save.pday[0]===todayStr())?save.pday[1]:0} 題${save.qwrong.length?` · 錯題本 ${save.qwrong.length} 題（會再出現）`:''}<br>題目難度會跟著你自己的答對率調整，兩個人各自是各自的程度；不論誰答對，學徒都一樣長大。卡住的題目可以按「請教」寄給${paN()}。</div>`;
+  <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="nbadd" ${PQ.nbd?'disabled':''}>${PQ.nbd?'已收進 📒':'📒 收進筆記本'}</button></div>`;
+ h+=`</div><div class="small">今天你答了 ${(save.pday&&save.pday[0]===todayStr())?save.pday[1]:0} 題${save.qwrong.length?` · 錯題本 ${save.qwrong.length} 題（會再出現）`:''}<br>題目難度會跟著你自己的答對率調整，兩個人各自是各自的程度；不論誰答對，學徒都一樣長大。覺得有意思、容易錯的題目，按「📒 收進筆記本」，兩個人都看得到，也可以在下面留筆記。</div>`;
  return h;
 }
 function pAns(k){
  if(!PQ||PQ.done)return;const Q=PQ.Q,ok=PQ.opts[k]===PQ.right;PQ.done=true;PQ.pick=k;PQ.ok=ok;
  const it=rewardItem(),home=IT[it][4]==='b'||IT[it][4]===HOME[ME()];
- const n=ok?(home?3:2)+(Q.lv>=3?1:0):1;addInv(it,n);
- save.qst[ok?0:1]++;if(ok)save.rep+=Q.lv;recStat(Q.t,ok,Q.lv);
+ let n=ok?(home?3:2)+(Q.lv>=3?1:0):1;if(ok&&myRole()==='art')n*=2;addInv(it,n);
+ save.qst[ok?0:1]++;if(ok)save.rep+=Q.lv;recStat(Q.t,ok,Q.lv);if(ok&&myRole()==='sch'&&Q.lv>=2){const x=save.us[Q.t];x[0]++}
  const td=todayStr();save.pday=save.pday&&save.pday[0]===td?[td,save.pday[1]+1]:[td,1];if(ok)save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+1]:[td,1];
  if(Q.qi>=0){save.qrecent.push(Q.qi);save.qrecent=save.qrecent.slice(-60);
   if(ok)save.qwrong=save.qwrong.filter(x=>x!==Q.qi);else if(!save.qwrong.includes(Q.qi))save.qwrong.push(Q.qi);}
- const fw=forWhat(it),ap=APPM[U2A[Q.t]];PQ.rw=`${ok&&ap?`${ap.ic}${ap.nm} 經驗 +1　·　`:''}獲得 ${nm(it)} ×${n}${fw?`（蓋「${fw}」用得到）`:''}`;
+ const fw=forWhat(it),ap=APPM[U2A[Q.t]];PQ.rw=`${ok&&ap?`${ap.ic}${ap.nm} 經驗 +${myRole()==='sch'&&Q.lv>=2?2:1}　·　`:''}獲得 ${nm(it)} ×${n}${fw?`（蓋「${fw}」用得到）`:''}`;
  persist();checkLv();checkGoal();render();
 }
 function uStat(u){return save.us[u]||[0,0]}
@@ -1254,6 +1262,7 @@ function lvFor(u){return Math.max(1,Math.min(3,Math.round(uRating(u))))}
 function recentAcc(u){const h=(save.uh||{})[u]||[];return h.length?h.filter(Boolean).length/h.length:null}
 const ALLU=()=>[...UNITS_G,...UNITS_O];
 function pickQ(){
+ {const nbq=nbAll().filter(e=>scopeUnits().includes(e.t)&&!(save.nbRecent||[]).includes(e.id));if(nbq.length&&Math.random()<.15){const e=nbq[Math.floor(Math.random()*nbq.length)];save.nbRecent=[...(save.nbRecent||[]),e.id].slice(-15);return{nbe:e}}}
  {const wr=save.qwrong.filter(i=>QB[i]&&scopeUnits().includes(QB[i][3]));if(wr.length&&Math.random()<.25)return{bank:wr[Math.floor(Math.random()*wr.length)]}}
  const us=scopeUnits(),w=us.map(u=>{const[a,b]=uStat(u),n=a+b;return 1+(n?2.5*b/n:0)+(n<3?.6:0)+(UNITS_G.includes(u)?.3:0)});
  let t=Math.random()*w.reduce((x,y)=>x+y,0),u=us[0];for(let i=0;i<us.length;i++){t-=w[i];if(t<=0){u=us[i];break}}
@@ -1326,7 +1335,8 @@ function vBook(){
 const ucOf=(src,u)=>src===save?uStat(u)[0]:(P&&P.uc[u])||0;
 function appXP(a){return APPM[a].u.reduce((t,u)=>t+ucOf(save,u)+ucOf(P,u),0)}
 function appLv(a){const x=appXP(a);let l=1;ALV.forEach((v,i)=>{if(x>=v)l=i+1});return l}
-function unlocked(b){const x=BX[b];return!x||appLv(x[0])>=x[1]}
+function unlocked(b){const x=BX[b];return!x||(appLv(x[0])>=x[1]&&(x[1]<3||rsDone(b)))}
+const rsDone=b=>!!(save.rs[b]||(P&&P.rs[b]));
 function town(){
  const built=BD.filter(b=>bDone(b[0]));const have={};NEEDS.forEach(([k])=>have[k]=0);
  built.forEach(b=>{const e=(BX[b[0]]||[0,0,{}])[2];for(const k in e)have[k]+=e[k]});
@@ -1358,50 +1368,80 @@ function claimWork(){
 let LV0={};
 function snapLv(){APP.forEach(a=>LV0[a.id]=appLv(a.id))}
 function checkLv(own=true){APP.forEach(a=>{const l=appLv(a.id);if(LV0[a.id]&&l>LV0[a.id]){if(own){pushEv({k:'alv',a:a.id,n:l});persist()}confetti();toast(`${a.ic} ${a.nm} 升到 Lv${l}！${ALINE[l]||''}`)}LV0[a.id]=l})}
-// ---- 請教 ----
+// ---- 共同筆記本 ----
 const plain=h=>String(h).replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ');
 const rich=t=>esc(t).replace(/\n/g,'<br>');
-function askThis(){
- if(!PQ||!PQ.done)return;const Q=PQ.Q;
- const id=ME()+Date.now().toString(36);
- save.asks.unshift({id,q:plain(Q.q),o:PQ.opts.map(plain),a:PQ.opts.indexOf(PQ.right),ex:plain(Q.ex),t:Q.t,lv:Q.lv,un:Q.un||'',ts:Date.now(),mine:PQ.pick});
- save.asks=save.asks.slice(0,12);PQ.asked=true;pushEv({k:'ask',u:Q.t});persist();
- toast(`✉️ 已寄給${paN()}，回覆後會出現在「學院」`);render();
+function nbAll(){const m=save.nb.map(e=>({...e,by:ME()})),p=P?P.nb.map(e=>({...e,by:PA()})):[];return[...m,...p].sort((x,y)=>y.ts-x.ts)}
+function nbNew(){if(!P)return 0;const t=save.nbSeen||0;return P.nb.filter(e=>e.ts>t).length+Object.values(P.nn).filter(x=>x.ts>t&&x.txt).length}
+function nbAdd(){
+ if(!PQ||!PQ.done||PQ.nbd)return;const Q=PQ.Q;
+ save.nb.unshift({id:ME()+Date.now().toString(36),q:plain(Q.q),o:PQ.opts.map(plain),a:PQ.opts.indexOf(PQ.right),ex:plain(Q.ex),t:Q.t,lv:Q.lv,un:Q.un||'',ts:Date.now()});
+ save.nb=save.nb.slice(0,80);PQ.nbd=true;pushEv({k:'nb',u:Q.t});persist();toast(`📒 收進筆記本了，${paN()}也看得到`);render();
 }
-function inbox(){return P?P.ask.filter(a=>!save.replies[a.id]):[]}
-function newReplies(){return P?save.asks.filter(a=>P.rep2[a.id]&&!save.askSeen[a.id]):[]}
-let AQ=null;
-function openAsk(id){const a=P.ask.find(x=>x.id===id);if(!a)return;AQ={a,pick:null,h:-1};drawAsk()}
-function drawAsk(){
- const a=AQ.a;let h=`<div class="small">✉️ ${paN()}的請教　<span class="pill">${a.t}</span><span class="pill">${'★'.repeat(a.lv)}</span></div><div class="dq">${rich(a.q)}</div>`;
- h+=a.o.map((o,k)=>`<button class="opt ${AQ.pick!==null?(k===a.a?'right':k===AQ.pick?'wrong':''):''}" data-a="aqp" data-v="${k}" ${AQ.pick!==null?'disabled':''}>${rich(o)} ${esc(a.un)}</button>`).join('');
- if(AQ.pick!==null){h+=`<div class="ex">${AQ.pick===a.a?'<span class="ok">✓ 你答對了！</span>':'<span class="bad">✗ 這題連你也錯了，一起記下來。</span>'} ${rich(a.ex)}</div>
-  <div class="small">要不要附一句提示給${paN()}？（可以不選）</div><div class="inv" style="margin:6px 0">${HINTS.map((t,k)=>`<span class="chip ${AQ.h===k?'':'zero'}" style="${AQ.h===k?'border-color:var(--gold);background:#fbefd3':''}" data-a="aqh" data-v="${k}">${t}</span>`).join('')}</div>
-  <button class="btn gold" data-a="aqsend">✉️ 回覆${paN()}</button>`}
- h+=`<button class="btn ghost" data-a="close">先不回</button>`;modal(h);
+// 舊版的「請教」轉成筆記本
+if(save.asks&&save.asks.length){save.asks.forEach(a=>{if(!save.nb.some(e=>e.id===a.id))save.nb.push({id:a.id,q:a.q,o:a.o,a:a.a,ex:a.ex,t:a.t,lv:a.lv,un:a.un,ts:a.ts})});save.asks=[];_persist()}
+let NBF='all',NBQ=null;
+function vNotebook(){
+ const all=nbAll(),us=[...new Set(all.map(e=>e.t))];
+ let h=`<div class="sec">📒 我們的筆記本<small>${all.length} 題 · ${meN()}和${paN()}一起寫的</small></div>`;
+ if(!all.length)return h+`<div class="card muted">還是空的。練習時遇到有意思、容易錯、想記住的題目，答完按「📒 收進筆記本」。<br><br>收進來的題目兩個人都看得到，可以在下面互相留筆記，偶爾也會在練習時跳出來複習。</div>`;
+ h+=`<div class="inv" style="margin-bottom:10px"><span class="chip ${NBF==='all'?'':'zero'}" data-a="nbf" data-v="all">全部</span>${us.map(u=>`<span class="chip ${NBF===u?'':'zero'}" data-a="nbf" data-v="${u}">${u.replace('有機・','')}</span>`).join('')}</div>`;
+ all.filter(e=>NBF==='all'||e.t===NBF).forEach(e=>{
+  const notes=[[ME(),save.nn[e.id]],[PA(),P&&P.nn[e.id]]].filter(x=>x[1]&&x[1].txt);
+  const isNew=e.by===PA()&&e.ts>(save.nbSeen||0);
+  h+=`<div class="card" ${isNew?'style="border-color:var(--her)"':''}><div class="small"><span class="pill">${e.t}</span><span class="pill">${'★'.repeat(e.lv)}</span>${isNew?'<span class="pill her">新</span>':''}<span class="${e.by===ME()?'who-me':'who-her'}">${NM[e.by]}</span> 收的 · ${ago(e.ts)}</div>
+   <div class="dq" style="font-size:14.5px">${rich(e.q)}</div><div class="small">答案：<b>${rich(e.o[e.a])} ${esc(e.un)}</b></div>
+   <details style="margin-top:4px"><summary class="small" style="cursor:pointer">看解說</summary><div class="ex">${rich(e.ex)}</div></details>
+   ${notes.map(([w,x])=>`<div class="ex" style="border-left-color:${w===ME()?'var(--me)':'var(--her)'}">✏️ <span class="${w===ME()?'who-me':'who-her'}">${NM[w]}</span>：${esc(x.txt)}</div>`).join('')}
+   <div class="row"><button class="btn" style="flex:1;margin-top:6px;padding:7px" data-a="nbtry" data-v="${e.id}">再練一次</button><button class="btn" style="flex:1;margin-top:6px;padding:7px" data-a="nbnote" data-v="${e.id}">${save.nn[e.id]&&save.nn[e.id].txt?'改我的筆記':'✏️ 留筆記'}</button></div></div>`});
+ return h;
 }
-function askPick(k){const a=AQ.a;AQ.pick=k;const ok=k===a.a;recStat(a.t,ok,a.lv);if(ok){const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+1]:[td,1]}persist();checkLv();drawAsk()}
-function askSend(){const a=AQ.a;save.replies[a.id]={p:AQ.pick,ok:AQ.pick===a.a,h:AQ.h,ts:Date.now()};pushEv({k:'reply'});persist();checkGoal();toast(`已回覆${paN()} ✉️`);closeM()}
+function nbNote(id){const cur=(save.nn[id]&&save.nn[id].txt)||'';
+ modal(`<h3>✏️ 留筆記</h3><div class="small">寫一句自己的理解、記憶法、或提醒（80 字內）。${paN()}會看到。</div>
+ <textarea id="nbt" maxlength="80" style="width:100%;height:80px;margin-top:8px;border-radius:10px;border:1px solid var(--line);padding:8px;font-family:inherit;font-size:15px;background:#fffdf7">${esc(cur)}</textarea>
+ <div class="small" style="margin-top:6px">或點一句：</div><div class="inv" style="margin:6px 0">${HINTS.map(t=>`<span class="chip zero" data-a="nbh" data-v="${esc(t)}">${t}</span>`).join('')}</div>
+ <button class="btn gold" data-a="nbsave" data-v="${id}">存起來</button><button class="btn ghost" data-a="close">取消</button>`)}
+function nbSave(id){const t=($('nbt').value||'').trim().slice(0,80);if(t){save.nn[id]={txt:t,ts:Date.now()};pushEv({k:'nn'})}else delete save.nn[id];persist();toast(t?'✏️ 筆記存好了':'已刪除筆記');closeM()}
+function nbTry(id){const e=nbAll().find(x=>x.id===id);if(!e)return;NBQ={e,opts:shuffle(e.o.map((o,i)=>i)),pick:null};drawNbTry()}
+function drawNbTry(){const e=NBQ.e;let h=`<div class="small"><span class="pill">${e.t}</span>📒 筆記本</div><div class="dq">${rich(e.q)}</div>`+NBQ.opts.map(i=>`<button class="opt ${NBQ.pick!==null?(i===e.a?'right':i===NBQ.pick?'wrong':''):''}" data-a="nbp" data-v="${i}" ${NBQ.pick!==null?'disabled':''}>${rich(e.o[i])} ${esc(e.un)}</button>`).join('');
+ if(NBQ.pick!==null)h+=`<div class="ex">${NBQ.pick===e.a?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 再看一次解說吧。</span>'} ${rich(e.ex)}</div>`;
+ modal(h+`<button class="btn ghost" data-a="close">關閉</button>`)}
+function nbPick(i){const e=NBQ.e;NBQ.pick=i;const ok=i===e.a;recStat(e.t,ok,e.lv);if(ok){const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+1]:[td,1]}persist();checkLv();checkGoal();drawNbTry()}
+// ---- 角色：學者 / 工匠 ----
+const ROLES={sch:['🔬','學者','負責研究課題：Lv3 以上的建築要先完成研究才能蓋。答對 ★★ 以上的題目，學徒經驗 ×2。'],art:['🛠️','工匠','負責配平、量產和蓋房子。答對的材料獎勵 ×2，工房每次反應多做出一份主產物。']};
+function myRole(){return save.role||(ME()==='her'?'sch':'art')}
+function roleCard(){const r=ROLES[myRole()],pr=P&&P.role?ROLES[P.role]:null;
+ return`<div class="card"><div class="tagrow"><b>你的角色：${r[0]} ${r[1]}</b><button class="btn" style="width:auto;margin:0;padding:4px 10px;font-size:13px" data-a="role2">換成${ROLES[myRole()==='sch'?'art':'sch'][1]}</button></div><div class="small" style="margin-top:4px">${r[2]}</div>${pr?`<div class="small" style="margin-top:6px">${paN()}：${pr[0]} ${pr[1]}</div>`:''}<div class="small" style="margin-top:4px;color:var(--dim)">角色隨時可以換；兩個人同一個角色也沒關係，只是分工比較有效率。</div></div>`}
+// ---- 研究課題（學者）：三題 ★★★，答對兩題就完成 ----
+let RS=null;
+function rsQs(b){const ap=APPM[BX[b][0]],out=[];
+ const bank=QB.map((q,i)=>i).filter(i=>ap.u.includes(QB[i][3])&&QB[i][4]>=3),gens=GEN.filter(g=>ap.u.includes(g.u)&&g.l>=2);
+ const sb=shuffle(bank);while(out.length<3){if(gens.length&&(out.length===1||!sb.length)){const g=genQ(gens[Math.floor(Math.random()*gens.length)],Math.random);out.push({q:g.q,o:g.o,ex:g.ex,t:g.t,lv:3,un:g.u})}
+  else if(sb.length){const q=QB[sb.pop()];out.push({q:q[0],o:q[1],ex:q[2],t:q[3],lv:q[4],un:''})}else{const q=QB[QB.map((q,i)=>i).filter(i=>ap.u.includes(QB[i][3]))[0]];out.push({q:q[0],o:q[1],ex:q[2],t:q[3],lv:q[4],un:''})}}
+ return out.map(x=>({...x,right:x.o[0],opts:shuffle(x.o)}))}
+function rsStart(b){if(myRole()!=='sch'){toast('研究課題要由「學者」來做（可以在學院換角色）');return}RS={b,qs:rsQs(b),k:0,ok:0,pick:null};drawRs()}
+function drawRs(){const b=BDM[RS.b],q=RS.qs[RS.k];
+ let h=`<h3>🔬 研究課題：${b[2]} ${b[3]}</h3><div class="small">第 ${RS.k+1}/3 題 · 答對 2 題就完成 · 目前答對 ${RS.ok}</div><div class="dq">${q.q}</div>`+q.opts.map((o,i)=>`<button class="opt ${RS.pick!==null?(o===q.right?'right':i===RS.pick?'wrong':''):''}" data-a="rsp" data-v="${i}" ${RS.pick!==null?'disabled':''}>${o} ${q.un}</button>`).join('');
+ if(RS.pick!==null){h+=`<div class="ex">${q.opts[RS.pick]===q.right?'<span class="ok">✓</span>':'<span class="bad">✗</span>'} ${q.ex}</div>`;
+  const fin=RS.ok>=2||RS.k===2;h+=fin?(RS.ok>=2?`<div class="ok" style="text-align:center">研究完成！「${b[3]}」可以開工了。</div><button class="btn gold" data-a="close">太好了</button>`:`<div class="bad" style="text-align:center">這次沒過，可以再挑戰一次（題目會換）。</div><button class="btn gold" data-a="rsgo" data-v="${RS.b}">再挑戰</button><button class="btn ghost" data-a="close">先休息</button>`):`<button class="btn gold" data-a="rsn">下一題 →</button>`}
+ modal(h)}
+function rsPick(i){const q=RS.qs[RS.k];RS.pick=i;const ok=q.opts[i]===q.right;if(ok)RS.ok++;recStat(q.t,ok,q.lv);if(ok){const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+1]:[td,1]}
+ if(RS.ok>=2&&!save.rs[RS.b]){save.rs[RS.b]=1;pushEv({k:'rs',b:RS.b});confetti()}persist();checkLv();checkGoal();drawRs()}
 // ---- 學院 ----
 function apCard(a,big){const l=appLv(a.id),x=appXP(a.id),nx=ALV[l]??null,pv=ALV[l-1];const pc=nx===null?1:(x-pv)/(nx-pv);
  return`<div class="card" ${big?'':`data-a="apv" data-v="${a.id}" style="cursor:pointer"`}><div class="row" style="flex-wrap:nowrap"><div style="font-size:38px;line-height:1">${a.ic}</div><div style="flex:1;min-width:0"><div class="tagrow"><b style="font-family:'Noto Serif TC',serif;font-size:16px;color:#6b4a1c">${a.nm}</b><span class="pill">Lv${l}${l>=GRAD?' · 出師':''}</span></div>
  <div class="small">${a.tp}</div><div class="need" style="margin:4px 0 0"><div class="bar"><i style="width:${pc*100}%;background:linear-gradient(90deg,var(--me),var(--her))"></i></div></div>
  <div class="small">${nx===null?'已經是大師了':`再一起答對 ${nx-x} 題升級`}</div></div></div>${big?`<div class="muted" style="margin-top:6px">${a.d}</div><div class="ex">${ALINE[l]}</div>`:''}</div>`}
 function vAcademy(){
- let h='';const ib=inbox(),nr=newReplies();
- if(ib.length)h+=`<div class="sec">✉️ ${paN()}的請教<small>${ib.length} 題等你回覆</small></div>`+ib.map(a=>`<div class="card" data-a="ask" data-v="${a.id}" style="cursor:pointer"><span class="pill">${a.t}</span><span class="small">${ago(a.ts)}</span><div class="dq" style="font-size:14px">${rich(a.q.length>90?a.q.slice(0,90)+'…':a.q)}</div><div class="small" style="color:var(--her)">點開來回答 →</div></div>`).join('');
- const mine=save.asks.filter(a=>P&&P.rep2[a.id]);
- if(mine.length)h+=`<div class="sec">${paN()}的回覆</div>`+mine.slice(0,6).map(a=>{const r=P.rep2[a.id];return`<div class="card" ${save.askSeen[a.id]?'':'style="border-color:var(--her)"'}><span class="pill">${a.t}</span>${save.askSeen[a.id]?'':'<span class="pill her">新</span>'}<div class="small" style="margin:4px 0">${rich(a.q.length>70?a.q.slice(0,70)+'…':a.q)}</div>
-  <div>${paN()}選了：<b>${rich(a.o[r.p])} ${esc(a.un)}</b> ${r.ok?'<span class="ok">✓</span>':`<span class="bad">（這題${paN()}也錯了）</span>`}</div>${r.h>=0?`<div class="ex">💬 ${HINTS[r.h]}</div>`:''}<div class="small">正解：${rich(a.o[a.a])} ${esc(a.un)}</div></div>`}).join('');
- const wait=save.asks.filter(a=>!(P&&P.rep2[a.id]));if(wait.length)h+=`<div class="small" style="margin:4px 2px 10px">還有 ${wait.length} 題請教在等${paN()}回覆。</div>`;
+ let h=roleCard();
  h+=`<div class="sec">🎓 學徒們<small>兩個人答對的題目都算經驗，Lv${GRAD} 出師後每天會寄材料回來</small></div>`;
  APP.slice().sort((x,y)=>appXP(y.id)-appXP(x.id)).forEach(a=>h+=apCard(a));
+ h+=`<button class="btn" data-a="tab" data-v="book">📘 我的學習紀錄（單元答對率、原理卡、配平過的方程式）</button>`;
  return h;
 }
 function openApp(id){const a=APPM[id];const units=a.u.map(u=>`<span class="chip zero">${u.replace('有機・','')}<b style="font-weight:400;font-size:11px">${'★'.repeat(lvFor(u))}</b></span>`).join('');
  const bs=Object.keys(BX).filter(b=>BX[b][0]===id).map(b=>`${BDM[b][2]}${BDM[b][3]} <span class="small">Lv${BX[b][1]}</span>`).join('、');
  modal(`${apCard(a,true)}<div class="small">負責的單元（★ 是你目前在這單元的題目難度）</div><div class="inv" style="margin:6px 0 10px">${units}</div><div class="small">升級後能蓋：${bs||'—'}</div><button class="btn gold" data-a="teach" data-v="${id}">📝 上${a.nm}的課</button><button class="btn ghost" data-a="close">關閉</button>`);
- if(newReplies().length){}
 }
 
 
@@ -1414,21 +1454,24 @@ function openHelp(){
  <div class="ex"><b>① 📝 練習</b>：選一位學徒，開始答題。<br>
  ・每一題都是在幫學徒上課；答對，學徒就長大一點，也會拿到蓋房子要用的原料。<br>
  ・題目難度會照<b>你自己</b>的答對率調整（大約答對七成的難度），所以兩個人程度不同也沒關係。<br>
- ・答錯會看到解說；不懂的題目按「✉️ 請教${paN()}」寄過去。</div>
- <div class="ex"><b>② 🎓 學院</b>：看學徒成長、回覆${paN()}的請教。<br>
- ・兩個人答對的題目都算同一位學徒的經驗。<br>
- ・學徒升級才能蓋對應的建築；Lv${GRAD} 出師後，每天會自己寄材料回來。<br>
- ・回覆請教時可以附一句提示（不用打字）。</div>
+ ・答完會看到解說；覺得有意思、容易錯的題目，按「📒 收進筆記本」。</div>
+ <div class="ex"><b>② 🎓 學院</b>：選角色、看學徒成長。<br>
+ ・<b>角色</b>：🔬 學者負責「研究課題」（Lv3 以上的建築要先研究才能蓋），答對 ★★ 以上學徒經驗 ×2；🛠️ 工匠負責配平和蓋房子，材料獎勵 ×2、反應多做一份。角色隨時可換。<br>
+ ・兩個人答對的題目都算同一位學徒的經驗。學徒升級才能蓋對應的建築；Lv${GRAD} 出師後，每天會自己寄材料回來。<br>
+ ・最下面可以看自己的學習紀錄（只有你看得到）。</div>
+ <div class="ex"><b>📒 筆記本</b>：兩個人收進來的題目都在這裡。<br>
+ ・可以在題目下面留一句自己的筆記（記憶法、提醒），${paN()}會看到；${paN()}寫的也會出現。<br>
+ ・「再練一次」可以直接重做；練習時也會偶爾跳出筆記本的題目複習。</div>
  <div class="ex"><b>③ 🏘️ 小鎮</b>：把材料送去蓋房子。<br>
  ・點建築看需要什麼；材料夠就按「捐出」。<br>
  ・缺的東西如果是原料，繼續練習就會拿到；如果要用反應做，點旁邊的按鈕會直接跳到工房。<br>
  ・上方七格是鎮民的需求（住、水、糧、醫、光、工、樂），「鎮民心聲」會告訴你現在最該蓋哪一棟。<br>
- ・灰色有 🔒 的建築，要先把對應的學徒教到指定等級。</div>
+ ・灰色有 🔒 的建築，要先把對應的學徒教到指定等級；標「🔬 待研究」的要等學者完成研究課題。</div>
  <div class="ex"><b>④ ⚗️ 工房</b>：把原料變成建築要的東西。<br>
  ・第一次做某個反應要先<b>配平</b>：按 ▲▼ 調係數，讓兩邊每種原子一樣多。卡住時打開「原子計數」。<br>
  ・配平過一次之後，就可以直接照比例量產。<br>
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
- <div class="ex"><b>⑤ 📘 筆記</b>：看自己每個單元的答對率（只有你看得到）、蒐集到的原理卡、配平過的方程式。</div>
+
  <div class="sec">每日目標</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
@@ -1445,11 +1488,11 @@ function dbgPanel(){
  <div class="sec">學徒</div>${B('d_xp','每位學徒 +5 題答對（升一級左右）',5)}${B('d_xp','每位學徒 +30 題答對',30)}<div class="inv" style="margin-top:6px">${APP.map(a=>`<span class="chip" data-a="d_xp1" data-v="${a.id}">${a.ic}${a.nm} +10</span>`).join('')}</div>
  <div class="sec">材料與工房</div>${B('d_raw','原料各 +20')}${B('d_all','所有物質各 +10')}${B('d_solve','所有反應直接算已配平')}
  <div class="sec">小鎮</div>${B('d_b1','蓋好下一棟能蓋的')}${B('d_bu','蓋好所有已解鎖的')}${B('d_ball','全部 30 棟直接蓋好（無視鎖）')}
- <div class="sec">模擬${paN()}</div>${B('d_p','產生${paN()}的進度（答題、捐建築、今日答對 8 題）')}${B('d_pask','${paN()}寄來一題請教')}${B('d_prep','${paN()}回覆我所有的請教')}
+ <div class="sec">模擬${paN()}</div>${B('d_p','產生${paN()}的進度（答題、捐建築、今日答對 8 題）')}${B('d_pnb','${paN()}收一題進筆記本')}${B('d_pnn','${paN()}在我收的題目下留筆記')}${B('d_rs','所有研究課題直接完成')}
  <div class="sec">時間</div>${B('d_day','跳到明天（測每日目標、出師寄材料）')}
  <div class="sec">其他</div>${B('d_wipe','清空測試存檔，從頭開始')}<button class="btn gold" data-a="dbgoff">離開測試模式（回到真實存檔）</button><button class="btn ghost" data-a="close">關閉</button>`);
 }
-function dbgFakeP(){let fp=null;try{fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null')}catch(e){}return fp||{uc:{},ask:[],rep2:{},pd:['',0],don:{},ev:[],out:[],claimed:[],ts:Date.now()}}
+function dbgFakeP(){let fp=null;try{fp=JSON.parse(localStorage.getItem('mb_testP_'+ROLE)||'null')}catch(e){}return Object.assign({uc:{},ask:[],rep2:{},nb:[],nn:{},rs:{},role:ME()==='her'?'art':'sch',pd:['',0],don:{},ev:[],out:[],claimed:[],ts:Date.now()},fp||{})}
 function dbgSaveP(fp){fp.ts=Date.now();try{localStorage.setItem('mb_testP_'+ROLE,JSON.stringify(fp))}catch(e){}const prev=P;P=sanitize(fp);if(!prev)snapLv();else checkLv(false);checkGoal()}
 function dbgBuild(b){save.don[b[0]]=Object.assign({},b[4])}
 function dbg(a,v){
@@ -1468,10 +1511,10 @@ function dbg(a,v){
   case'd_p':{const fp=dbgFakeP();ALLU().forEach(u=>fp.uc[u]=(fp.uc[u]||0)+3+Math.floor(Math.random()*4));fp.pd=[todayStr(),8];
    const b=BD.find(b=>!bDone(b[0])&&unlocked(b[0]));if(b){fp.don[b[0]]={};const k=Object.keys(b[4])[0];fp.don[b[0]][k]=Math.ceil(b[4][k]/2);fp.ev.unshift({k:'don',b:b[0],it:k,n:fp.don[b[0]][k],t:Date.now()})}
    fp.ev.unshift({k:'goal',t:Date.now()-1});dbgSaveP(fp);return done(`${paN()}的進度已產生`)}
-  case'd_pask':{const fp=dbgFakeP();const qi=Math.floor(Math.random()*QB.length),q=QB[qi],o=shuffle(q[1]);
-   fp.ask.unshift({id:'fake'+Date.now().toString(36),q:plain(q[0]),o:o.map(plain),a:o.indexOf(q[1][0]),ex:plain(q[2]),t:q[3],lv:q[4],un:'',ts:Date.now()});fp.ev.unshift({k:'ask',u:q[3],t:Date.now()});dbgSaveP(fp);return done(`${paN()}寄來一題請教（到學院看）`)}
-  case'd_prep':{const fp=dbgFakeP();let n=0;save.asks.forEach(a=>{if(!fp.rep2[a.id]){const p=Math.random()<.7?a.a:(a.a+1)%4;fp.rep2[a.id]={p,ok:p===a.a,h:Math.floor(Math.random()*HINTS.length),ts:Date.now()};n++}});
-   if(n)fp.ev.unshift({k:'reply',t:Date.now()});dbgSaveP(fp);return done(n?`${paN()}回覆了 ${n} 題`:'你還沒有寄出請教');}
+  case'd_pnb':{const fp=dbgFakeP();fp.nb=fp.nb||[];const qi=Math.floor(Math.random()*QB.length),q=QB[qi],o=shuffle(q[1]);
+   fp.nb.unshift({id:'fk'+Date.now().toString(36),q:plain(q[0]),o:o.map(plain),a:o.indexOf(q[1][0]),ex:plain(q[2]),t:q[3],lv:q[4],un:'',ts:Date.now()});fp.ev.unshift({k:'nb',u:q[3],t:Date.now()});dbgSaveP(fp);return done(`${paN()}收了一題（看筆記本）`)}
+  case'd_pnn':{const fp=dbgFakeP();fp.nn=fp.nn||{};let n=0;save.nb.forEach(e=>{if(!fp.nn[e.id]){fp.nn[e.id]={txt:HINTS[Math.floor(Math.random()*HINTS.length)],ts:Date.now()};n++}});if(n)fp.ev.unshift({k:'nn',t:Date.now()});dbgSaveP(fp);return done(n?`${paN()}留了 ${n} 則筆記`:'你還沒收題目進筆記本')}
+  case'd_rs':BD.forEach(b=>{if(BX[b[0]]&&BX[b[0]][1]>=3)save.rs[b[0]]=1});return done('研究全部完成');
   case'd_day':TOFF++;try{localStorage.setItem('mb_toff',String(TOFF))}catch(e){}PQ=null;return done(`現在是 ${todayStr()}`);
   case'd_wipe':save=defSave();save.intro=true;try{localStorage.removeItem('mb_testP_'+ROLE)}catch(e){}P=null;LV0={};snapLv();_persist();toast('🧪 測試存檔已清空');closeM();return;
  }
@@ -1489,6 +1532,17 @@ function act(a,v,el){
  switch(a){
   case'close':return closeM();
   case'help':return openHelp();
+  case'nbadd':return nbAdd();
+  case'nbf':NBF=v;return render();
+  case'nbnote':return nbNote(v);
+  case'nbh':{const t=$('nbt');t.value=(t.value?t.value+' ':'')+v;return}
+  case'nbsave':return nbSave(v);
+  case'nbtry':return nbTry(v);
+  case'nbp':return nbPick(+v);
+  case'role2':save.role=myRole()==='sch'?'art':'sch';persist();toast(`現在是${ROLES[save.role][0]} ${ROLES[save.role][1]}`);return render();
+  case'rsgo':return rsStart(v);
+  case'rsp':return rsPick(+v);
+  case'rsn':RS.k++;RS.pick=null;return drawRs();
   case'dbg':return dbgPanel();
   default:if(a.startsWith('d_')||a.startsWith('dbg'))return dbg(a,v);
   case'bld':return openBld(v);
@@ -1509,11 +1563,6 @@ function act(a,v,el){
   case'fa':{const f=save.focusA||[];save.focusA=f.includes(v)?f.filter(x=>x!==v):[...f,v];PQ=null;persist();return render()}
   case'teach':save.focusA=[v];PQ=null;persist();closeM();TAB='gather';SCOPE_OPEN=false;render();return scrollTo(0,0);
   case'apv':return openApp(v);
-  case'ask':return openAsk(v);
-  case'aqp':return askPick(+v);
-  case'aqh':AQ.h=AQ.h===+v?-1:+v;return drawAsk();
-  case'aqsend':return askSend();
-  case'askq':return askThis();
   case'tab':TAB=v;render();return scrollTo(0,0);
   case'fset':save.focusA=v==='g'?APP.filter(a=>!a.u[0].startsWith('有機')).map(a=>a.id):v==='o'?['a8','a9','a10']:[];PQ=null;persist();return render();
   case'fu':{const f=save.focus||[];save.focus=f.includes(v)?f.filter(x=>x!==v):[...f,v];PQ=null;persist();return render()}
@@ -1534,7 +1583,7 @@ function prologue(){
  modal(`<h3>召喚</h3><p>期末考前一晚，實驗室的燒杯發出不屬於任何元素的光——</p>
  <p>醒來時，你在一座陌生大陸的${n?'<b>北方礦山</b>':'<b>南方海岸</b>'}。村民說，那天夜裡被召喚來的不只你一個：還有<b>${paN()}</b>，落在${n?'南方海岸':'北方礦山'}。</p>
  <p>這裡沒有魔法，他們口中的魔法全是化學。鎮上的孩子們想學，於是你們兩個成了他們的老師。</p>
- <div class="ex">📝 練習：選一位學徒上課，答題就是在教他。題目難度跟著你自己的答對率調整；不論誰答對，學徒都一樣長大。<br>🎓 學院：學徒升級後能幫忙蓋新建築，出師後每天寄材料回來。卡住的題目可以「請教」${paN()}，${paN()}的請教也會出現在這裡。<br>🏘️ 小鎮：兩個人一起蓋房子，照顧鎮民的住、水、糧、醫、光、工、樂。<br>⚗️ 工房：第一次做某個反應要先配平。<br>每天兩人合計答對 ${GOAL} 題，鎮民會送禮物來。</div>
+ <div class="ex">📝 練習：選一位學徒上課，答題就是在教他。題目難度跟著你自己的答對率調整；不論誰答對，學徒都一樣長大。<br>🎓 學院：選角色（🔬學者／🛠️工匠），看學徒成長。<br>📒 筆記本：兩個人一起收題目、互相留筆記。<br>🏘️ 小鎮：兩個人一起蓋房子，照顧鎮民的住、水、糧、醫、光、工、樂。<br>⚗️ 工房：第一次做某個反應要先配平。<br>每天兩人合計答對 ${GOAL} 題，鎮民會送禮物來。</div>
  <button class="btn gold" data-a="start">開始</button>`);
  $('modal').querySelector('[data-a=start]').onclick=()=>{save.intro=true;persist();closeM();openHelp()};
 }
