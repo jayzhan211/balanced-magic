@@ -17,6 +17,7 @@ HTML
 cat src/data.js
 cat src/qbank.js
 cat src/gen.js
+cat src/coop.js
 echo "// @@DATA_END"
 cat src/app.js
 echo "</script>"
