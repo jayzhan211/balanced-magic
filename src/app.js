@@ -715,7 +715,6 @@ function openHelp(){
  ・配平過一次之後，就可以直接照比例量產。<br>
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
- <div class="sec">帳號</div><div class="muted">${NM.her}打開就是${NM.her}，不用登入。${NM.j}要在自己的裝置連點標題 5 下，用 Google 登入一次。</div>
  <div class="sec">每日目標</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
