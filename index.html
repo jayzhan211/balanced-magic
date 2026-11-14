@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ead7">
+<title>魔法是可以配平的</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead7;--paper:#fbf6ea;--paper2:#f6eedc;--ink:#3b2f22;--dim:#8a7a62;--line:#e0d2b4;--gold:#c08a2e;--gold2:#e7b75a;--me:#2f7d7a;--me2:#d5ece9;--her:#c8566b;--her2:#f6dbe0;--ok:#3f8f5a;--bad:#c0453a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',system-ui,sans-serif;font-size:15px;line-height:1.55}
+body{background:radial-gradient(ellipse at top,#fbf3e2 0%,var(--bg) 70%) fixed}
+button{font-family:inherit;color:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:10px 12px calc(84px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;padding:6px 2px 10px}
+h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:21px;margin:0;color:#6b4a1c;letter-spacing:1px;cursor:default;user-select:none}
+.sub{font-size:12px;color:var(--dim)}
+.hstats{margin-left:auto;text-align:right;font-size:12px;color:var(--dim)}
+.hstats b{color:var(--gold);font-size:15px}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fbf6eaee;backdrop-filter:blur(6px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:4px 4px calc(4px + env(safe-area-inset-bottom));z-index:10}
+nav .in{display:flex;max-width:640px;width:100%}
+nav button{flex:1;border:none;background:none;padding:6px 0 4px;font-size:11.5px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative;cursor:pointer}
+nav button span{font-size:21px;line-height:1.1;filter:grayscale(.6);opacity:.75}
+nav button.on{color:#6b4a1c;font-weight:700}
+nav button.on span{filter:none;opacity:1}
+nav .dot{position:absolute;top:3px;right:calc(50% - 18px);width:8px;height:8px;border-radius:50%;background:var(--her)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px;box-shadow:0 2px 0 #e7dbc0}
+.card h3{margin:0 0 4px;font-family:'Noto Serif TC',serif;font-size:16px;color:#6b4a1c}
+.sec{font-family:'Noto Serif TC',serif;font-size:16px;color:#6b4a1c;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
+.sec small{font-family:'Noto Sans TC';font-size:12px;color:var(--dim);font-weight:400}
+.sec.locked{color:#b3a68d}
+.muted{color:var(--dim);font-size:13px}
+.small{font-size:12px;color:var(--dim)}
+.btn{display:block;width:100%;margin-top:8px;padding:11px;border-radius:11px;border:1px solid var(--line);background:var(--paper2);font-size:15px;cursor:pointer}
+.btn.gold{background:linear-gradient(#f1c46c,#e0a744);border-color:#c99536;color:#4a3412;font-weight:700}
+.btn.ghost{background:none;border-color:transparent;color:var(--dim)}
+.btn:disabled{opacity:.45}
+.btn:active{transform:scale(.985)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:#efe3c8;color:#7a5a24;margin-right:4px;white-space:nowrap}
+.pill.me{background:var(--me2);color:var(--me)}
+.pill.her{background:var(--her2);color:var(--her)}
+.eq{font-family:'Noto Sans TC',ui-monospace,monospace;font-size:14.5px;background:#fffdf7;border:1px dashed var(--line);border-radius:9px;padding:7px 9px;margin:6px 0;overflow-x:auto;white-space:nowrap}
+.eq .co{color:var(--gold);font-weight:700}
+.eq .q{color:var(--her);font-weight:700}
+/* town */
+.banner{background:linear-gradient(135deg,#fff8e8,#f9ecd2);border:1px solid #ecd9ae;border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:13.5px}
+.banner b{color:#6b4a1c}
+.town{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bld{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:10px 4px 8px;text-align:center;cursor:pointer;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px}
+.bld .ic{font-size:32px;line-height:1.15}
+.bld .nm{font-size:12.5px;font-weight:500}
+.bld .bar{width:82%;height:6px;border-radius:3px;background:#eadfc6;overflow:hidden;display:flex;margin-top:4px}
+.bld .bar i{display:block;height:100%}
+.bld.wip .ic{filter:grayscale(1) opacity(.35)}
+.bld.wip::after{content:'🏗️';position:absolute;top:6px;right:7px;font-size:15px}
+.bld.done{border-color:#e2bf72;background:linear-gradient(#fffaf0,#fbefd3)}
+.bld.done .ic{animation:bob 3s ease-in-out infinite}
+.bld .need{position:absolute;top:5px;left:7px;font-size:11px;color:var(--her)}
+.bld.lock{opacity:.45;cursor:default}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.feed .ev{font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line);display:flex;gap:6px}
+.feed .ev:last-child{border:none}
+.feed .t{color:var(--dim);font-size:11px;margin-left:auto;white-space:nowrap}
+.who-me{color:var(--me);font-weight:700}
+.who-her{color:var(--her);font-weight:700}
+/* inventory */
+.inv{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:18px;background:var(--paper);border:1px solid var(--line);font-size:13px;cursor:pointer}
+.chip .sw{width:12px;height:12px;border-radius:50%;border:1px solid #0002;flex:none}
+.chip b{color:var(--gold);font-weight:700}
+.chip.raw{border-style:dashed}
+.chip.zero{opacity:.45}
+.rx{cursor:pointer}
+.rx.no{opacity:.62}
+.rx .miss{font-size:12px;color:var(--bad)}
+.rx .can{font-size:12px;color:var(--ok)}
+.tagrow{display:flex;justify-content:space-between;align-items:center}
+/* modal */
+#modal{position:fixed;inset:0;background:#2a1f1488;display:none;align-items:flex-end;justify-content:center;z-index:30}
+#modal.show{display:flex}
+.mbox{background:var(--paper);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:up .22s ease}
+@media(min-width:700px){#modal{align-items:center}.mbox{border-radius:18px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.mbox h3{font-family:'Noto Serif TC',serif;color:#6b4a1c;margin:0 0 6px;font-size:18px}
+.opt{display:block;width:100%;text-align:left;margin:7px 0;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:#fffdf7;font-size:14.5px;cursor:pointer;line-height:1.5}
+.opt.right{border-color:var(--ok);background:#e6f3e8}
+.opt.wrong{border-color:var(--bad);background:#f8e3df}
+.opt:disabled{cursor:default}
+.ex{background:#fff6e2;border-left:3px solid var(--gold);padding:7px 10px;border-radius:0 8px 8px 0;font-size:13.5px;margin:8px 0}
+.ok{color:var(--ok);font-weight:700}
+.bad{color:var(--bad);font-weight:700}
+/* balance */
+.bal{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 2px;margin:10px 0;font-size:15px}
+.sp{display:flex;align-items:center;gap:2px}
+.stp{display:flex;flex-direction:column;align-items:center}
+.stp button{border:none;background:#efe3c8;border-radius:6px;width:28px;height:20px;font-size:11px;cursor:pointer;line-height:1}
+.stp b{font-size:19px;color:var(--gold);min-width:24px;text-align:center;line-height:1.3}
+.sp .f{font-size:15.5px;padding:0 2px}
+.arrow{color:var(--dim);padding:0 4px}
+.plus{color:var(--dim)}
+table.tally{border-collapse:collapse;margin:6px auto;font-size:13.5px}
+table.tally td,table.tally th{padding:3px 9px;border-bottom:1px solid var(--line);text-align:center}
+table.tally th{color:var(--dim);font-weight:500}
+table.tally td.y{color:var(--ok);font-weight:700}
+table.tally td.n{color:var(--bad);font-weight:700}
+.qty{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0}
+.qty button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fffdf7;font-size:20px;cursor:pointer}
+.qty b{font-size:24px;min-width:40px;text-align:center}
+.need{margin:6px 0}
+.need .lbl{display:flex;justify-content:space-between;font-size:13.5px}
+.need .bar{height:9px;border-radius:5px;background:#eadfc6;overflow:hidden;display:flex;margin:3px 0 2px}
+.need .bar i{display:block;height:100%}
+.legend{font-size:11.5px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin:0 3px 0 8px}
+.regions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.region{border:1px solid var(--line);border-radius:13px;padding:10px;background:var(--paper);cursor:pointer;text-align:center}
+.region.on{border-color:var(--gold);box-shadow:0 0 0 2px #e7b75a55 inset}
+.region .ic{font-size:28px}
+.region .h{font-size:11.5px;color:var(--dim)}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px}
+.gl .g{padding:9px 10px;border-radius:11px;border:1px solid var(--line);background:#fffdf7;cursor:pointer;text-align:left;font-size:13.5px}
+.gl .g small{display:block;color:var(--dim);font-size:11.5px}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center}
+.vs .p{border-radius:12px;padding:8px}
+.vs .p.me{background:var(--me2)}
+.vs .p.her{background:var(--her2)}
+.vs .p b{font-size:22px;display:block}
+.cardk{border-left:4px solid var(--gold)}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);opacity:0;background:#4a3412;color:#fff6e2;padding:9px 16px;border-radius:12px;font-size:14px;transition:.3s;z-index:40;max-width:88%;text-align:center;pointer-events:none}
+.toast.show{transform:translateX(-50%);opacity:1}
+.pop{animation:pop .5s ease}
+@keyframes pop{40%{transform:scale(1.08)}}
+.conf{position:fixed;top:-10px;font-size:20px;z-index:50;pointer-events:none;animation:fall 2.2s linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
+.plaque{font-size:12px;background:#fbefd3;border:1px solid #ecd9ae;border-radius:8px;padding:4px 8px;margin-top:6px;display:inline-block}
+.dq{font-size:15px;font-weight:500;margin:6px 0}
+.hist td{padding:2px 8px;font-size:13px;text-align:center}
+.foot{text-align:center;margin-top:20px}
+.foot button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:12px;padding:5px 10px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1 id="title">⚗ 魔法是可以配平的</h1>
+    <div class="sub" id="subt"></div>
+  </div>
+  <div class="hstats" id="hstats"></div>
+</header>
+<main id="main"></main>
+<div class="foot" id="foot"></div>
+</div>
+<nav><div class="in" id="nav"></div></nav>
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>window.__FB_CONFIG={ "apiKey": "AIzaSyB23R-w82cFQbcWzJERVaL7c1DTonpCdlU", "authDomain": "balanced-magic.firebaseapp.com", "projectId": "balanced-magic", "storageBucket": "balanced-magic.firebasestorage.app", "messagingSenderId": "493178778518", "appId": "1:493178778518:web:0f329d8250cc6b6d15e3b7" };</script>
+<script>
+const PAIR='7NagGHeso22QC5bBCStwkiGO';
+// @@DATA_START
+// ===================== 物質 =====================
+// id: [名稱, 化學式, 顏色, 說明, 採集地(n 北方礦山 / s 南方海岸 / b 兩地皆有 / 空=只能合成)]
+const IT = {
+caco3:['石灰石','CaCO3','#e8e0cc','碳酸鈣。北方是石灰岩，南方是貝殼，成分一樣。','b'],
+h2o:['水','H2O','#6fa8f0','萬物之溶劑。','b'],
+o2:['氧氣','O2','#9fd3ff','從空氣中分離出來的氧。空氣約 21% 是它。','b'],
+n2:['氮氣','N2','#d9e1ea','空氣中最多的成分（約 78%），三鍵很難打斷，所以極不活潑。','b'],
+c:['木炭','C','#2b2b2b','近乎純碳。冶金最重要的還原劑。兩邊的森林都燒得出來。','b'],
+mal:['孔雀石','Cu2(OH)2CO3','#2fa36b','鹼式碳酸銅，翠綠色的銅礦。','n'],
+fe2o3:['赤鐵礦','Fe2O3','#8b3a2b','氧化鐵，最重要的鐵礦。鐵是 +3 價。','n'],
+s:['硫磺','S','#f2d935','火山口採得的黃色固體。','n'],
+kno3:['硝石','KNO3','#f8f6ee','硝酸鉀，強氧化劑。北方老礦坑的牆上刮得到。','n'],
+vit:['綠礬','FeSO4·7H2O','#7fc58f','七水硫酸亞鐵。黃鐵礦風化而成，礦渣堆裡就有。','n'],
+ag:['白銀','Ag','#c8ccd2','導電性最好的金屬。','n'],
+znco3:['菱鋅礦','ZnCO3','#d9d2c0','碳酸鋅。','n'],
+mno2:['軟錳礦','MnO2','#3a3436','二氧化錳，Mn 是 +4 價。也是常見的催化劑。','n'],
+nacl:['海鹽','NaCl','#f4f4f4','氯化鈉。南方鹽田曬出來的。','s'],
+sio2:['石英砂','SiO2','#e6d7a8','二氧化矽，共價網狀固體，熔點約 1700 °C。','s'],
+k2co3:['草木灰','K2CO3','#b8b0a4','燒草木得到的灰，主成分碳酸鉀。','s'],
+bone:['魚骨灰','Ca3(PO4)2','#efe6d2','磷酸鈣。漁村把魚骨燒成灰。','s'],
+al2o3:['鋁土','Al2O3','#d9a07a','氧化鋁。南方紅土裡很多，但鋁抓氧抓得太緊，碳拿它沒辦法。','s'],
+ch4:['沼氣','CH4','#e6f0e0','甲烷。南方濕地冒出的可燃氣體。','s'],
+glu:['葡萄汁','C6H12O6','#6b2a5a','以葡萄糖計。南方葡萄園的特產。','s'],
+// ---- 合成物 ----
+cao:['生石灰','CaO','#f6f3ea','氧化鈣。遇水劇烈放熱。'],
+caoh2:['熟石灰','Ca(OH)2','#f2f2f2','氫氧化鈣，微溶於水的鹼。'],
+co2:['二氧化碳','CO2','#cfd8dc','直線形的非極性分子，密度比空氣大，不助燃。'],
+cuo:['氧化銅','CuO','#1e1e1e','黑色粉末。'],
+cu:['銅','Cu','#c8733a','排在氫之後的金屬，不溶於稀鹽酸。'],
+fe:['鐵','Fe','#7d8288','人類最重要的金屬。'],
+so2:['二氧化硫','SO2','#e8e4c9','角形的極性分子，酸性氧化物。'],
+kno2:['亞硝酸鉀','KNO2','#f7f3df','硝石受熱失去一個氧。'],
+co:['一氧化碳','CO','#e0e0e0','無色無味的劇毒氣體，也是強還原劑。'],
+h2:['氫氣','H2','#f4f9ff','最輕的氣體，莫耳質量 2 g/mol。'],
+zno:['氧化鋅','ZnO','#fafafa','白色粉末，兩性氧化物。'],
+zn:['鋅','Zn','#a9b4bd','沸點只有 907 °C，一還原就成了蒸氣。'],
+h2so4:['硫酸','H2SO4','#e9e2b0','強酸、強脫水劑。稀釋時要「酸入水」。'],
+hcl:['鹽酸','HCl','#e6f3d8','強酸。'],
+na2so4:['芒硝','Na2SO4','#f1f1f1','硫酸鈉。'],
+khso4:['硫酸氫鉀','KHSO4','#f3f3ee','酸式鹽。'],
+hno3:['硝酸','HNO3','#f5e8a0','強酸，也是強氧化劑。N 是 +5 價。'],
+zncl2:['氯化鋅','ZnCl2','#f8f8f8','易溶的白色鹽。'],
+feso4:['硫酸亞鐵','FeSO4','#b9dfb9','淡綠色溶液，Fe²⁺。'],
+cuso4:['硫酸銅','CuSO4','#2f7fd8','Cu²⁺ 的藍色溶液。'],
+cuno3:['硝酸銅','Cu(NO3)2','#3a7bd5','藍色溶液。'],
+no:['一氧化氮','NO','#e8e8f0','無色氣體，一碰空氣就變紅棕色的 NO₂。'],
+no2:['二氧化氮','NO2','#a0461e','紅棕色劇毒氣體。'],
+agno3:['硝酸銀','AgNO3','#f6f6f6','檢驗 Cl⁻ 的試劑。'],
+agcl:['氯化銀','AgCl','#f9f9f3','白色沉澱，Ksp 約 1.8×10⁻¹⁰，見光分解變黑。'],
+nano3:['硝酸鈉','NaNO3','#f5f5f0','易溶的鹽。'],
+na2co3:['蘇打','Na2CO3','#f7f7f7','碳酸鈉，水溶液呈鹼性。'],
+cas:['硫化鈣','CaS','#d9d6c0','路布蘭法的廢渣。'],
+naoh:['燒鹼','NaOH','#fafafa','強鹼，莫耳質量 40 g/mol。'],
+glass:['玻璃','Na2O·CaO·6SiO2','#bfe9e6','鈉鈣玻璃。窗戶和瓶子到今天都是這個配方。'],
+cacl2:['氯化鈣','CaCl2','#f5f5f5','吸濕性強，常用作乾燥劑。'],
+koh:['苛性鉀','KOH','#fafafa','強鹼。'],
+cl2:['氯氣','Cl2','#c8e05a','黃綠色劇毒氣體。'],
+naclo:['次氯酸鈉','NaClO','#eef8d8','漂白水的主成分，Cl 是 +1 價。'],
+mncl2:['氯化錳','MnCl2','#f3d9de','淡粉紅色。'],
+nh3:['氨','NH3','#eaf4ff','三角錐形的極性分子，鹼性氣體。'],
+so3:['三氧化硫','SO3','#f0f0f0','溶於水就成了硫酸。'],
+kcl:['氯化鉀','KCl','#f4f4f4','白色晶體。'],
+kclo3:['氯酸鉀','KClO3','#f9f9f9','強氧化劑，Cl 是 +5 價。'],
+al:['鋁','Al','#d5d9de','地殼中最多的金屬，卻是最晚被大量生產的金屬之一。'],
+casio3:['矽酸鈣','CaSiO3','#e7e2d6','爐渣。'],
+p4:['白磷','P4','#f6f3c0','正四面體分子，在黑暗中發光，燃點約 30 °C。'],
+p4o10:['五氧化二磷','P4O10','#ffffff','極強的吸水劑。'],
+nahco3:['小蘇打','NaHCO3','#fbfbfb','碳酸氫鈉，受熱放出 CO₂。'],
+nh4cl:['氯化銨','NH4Cl','#f0efe8','溶於水會吸熱，水溶液呈酸性。'],
+etoh:['乙醇','C2H5OH','#eef6ff','酒的主成分。'],
+};
+const SRC = {n:'北方礦山',s:'南方海岸',b:'兩地皆有'};
+
+// ===================== 反應（全部是真實化學，係數由程式驗證） =====================
+// [id, 章, 操作, 反應物[[id,係數]], 產物[[id,係數]], 主題, 說明]
+const OPN = {heat:['加熱','🔥'],mix:['混合','🥣'],ignite:['點燃','✨'],elec:['電解','⚡'],cat:['催化','🧪'],ferm:['發酵','🫧']};
+const RX = [
+['lime',1,'heat',[['caco3',1]],[['cao',1],['co2',1]],'熱分解','約 900 °C 分解。石灰窯從古羅馬燒到今天。'],
+['slake',1,'mix',[['cao',1],['h2o',1]],[['caoh2',1]],'放熱反應','劇烈放熱，水甚至會沸騰。ΔH < 0。'],
+['limewater',1,'mix',[['caoh2',1],['co2',1]],[['caco3',1],['h2o',1]],'沉澱','澄清石灰水變混濁——檢驗 CO₂ 的經典方法。'],
+['malheat',1,'heat',[['mal',1]],[['cuo',2],['h2o',1],['co2',1]],'熱分解','翠綠的礦石變成黑色粉末。'],
+['cusmelt',1,'heat',[['cuo',2],['c',1]],[['cu',2],['co2',1]],'氧化還原','碳把氧從銅身上搶走：C 被氧化（0→+4），Cu 被還原（+2→0）。'],
+['fesmelt',1,'heat',[['fe2o3',2],['c',3]],[['fe',4],['co2',3]],'氧化還原','Fe 從 +3 被還原成 0。需要比煉銅高得多的爐溫。'],
+['sburn',1,'ignite',[['s',1],['o2',1]],[['so2',1]],'燃燒','幽藍的火焰，刺鼻的氣味。'],
+['kno3heat',1,'heat',[['kno3',2]],[['kno2',2],['o2',1]],'熱分解','舍勒約 1771 年以此得到「火空氣」。'],
+['watergas',1,'heat',[['c',1],['h2o',1]],[['co',1],['h2',1]],'吸熱反應','把水蒸氣吹過紅熱的炭：水煤氣。這是吸熱反應，炭會越吹越冷。'],
+['h2burn',1,'ignite',[['h2',2],['o2',1]],[['h2o',2]],'燃燒','「砰！」只生成水。拉瓦節據此證明水不是元素。'],
+['coburn',1,'ignite',[['co',2],['o2',1]],[['co2',2]],'燃燒','淡藍色火焰。'],
+['znheat',1,'heat',[['znco3',1]],[['zno',1],['co2',1]],'熱分解','碳酸鹽受熱都會放出 CO₂。'],
+['znsmelt',1,'heat',[['zno',1],['c',1]],[['zn',1],['co',1]],'相變','鋅在還原溫度下已是蒸氣，必須在密閉罐中冷凝收集。'],
+// ---- 第二章 ----
+['vitriol',2,'heat',[['vit',2]],[['fe2o3',1],['so2',1],['h2so4',1],['h2o',13]],'結晶水','乾餾綠礬，滴出油狀的硫酸——中世紀鍊金術最強的武器。'],
+['hclmake',2,'heat',[['nacl',2],['h2so4',1]],[['na2so4',1],['hcl',2]],'揮發性','高沸點的硫酸把低沸點的 HCl 趕出來。'],
+['hno3make',2,'heat',[['kno3',1],['h2so4',1]],[['khso4',1],['hno3',1]],'揮發性','HNO₃ 沸點約 83 °C，可以蒸餾出來。'],
+['znhcl',2,'mix',[['zn',1],['hcl',2]],[['zncl2',1],['h2',1]],'活性序','鋅排在氫前面，能從酸中置換出氫氣。'],
+['feacid',2,'mix',[['fe',1],['h2so4',1]],[['feso4',1],['h2',1]],'活性序','卡文迪許 1766 年就是這樣收集「可燃空氣」的。'],
+['cuoacid',2,'mix',[['cuo',1],['h2so4',1]],[['cuso4',1],['h2o',1]],'酸鹼','鹼性氧化物溶於酸，黑粉變成藍色溶液。'],
+['cement',2,'mix',[['fe',1],['cuso4',1]],[['feso4',1],['cu',1]],'活性序','鐵片表面鍍上紅銅。宋代「膽水浸銅」就是這個。'],
+['cuhno3',2,'mix',[['cu',3],['hno3',8]],[['cuno3',3],['no',2],['h2o',4]],'氧化還原','銅不怕非氧化性酸，但硝酸的 N(+5) 能氧化它，自己被還原成 NO(+2)。'],
+['aghno3',2,'mix',[['ag',1],['hno3',2]],[['agno3',1],['no2',1],['h2o',1]],'氧化還原','濃硝酸溶銀，冒出紅棕色的 NO₂。'],
+['agcl',2,'mix',[['agno3',1],['nacl',1]],[['agcl',1],['nano3',1]],'沉澱','白色凝乳狀沉澱。AgCl 的溶度積極小。'],
+['leblanc',2,'heat',[['na2so4',1],['caco3',1],['c',2]],[['na2co3',1],['cas',1],['co2',2]],'工業製程','路布蘭法（1791），史上第一個大規模化學工業。'],
+['causticize',2,'mix',[['caoh2',1],['na2co3',1]],[['caco3',1],['naoh',2]],'沉澱','CaCO₃ 沉澱下來，把平衡一路往右拉。'],
+['kohmake',2,'mix',[['caoh2',1],['k2co3',1]],[['caco3',1],['koh',2]],'沉澱','古代肥皂匠就是用石灰把溫和的草木灰水變成強鹼。'],
+['neutral',2,'mix',[['hcl',1],['naoh',1]],[['nacl',1],['h2o',1]],'中和','強酸加強鹼，H⁺ + OH⁻ → H₂O，每莫耳放熱約 56 kJ。'],
+['soda_hcl',2,'mix',[['na2co3',1],['hcl',2]],[['nacl',2],['h2o',1],['co2',1]],'酸鹼','冒泡中和。'],
+['caco3hcl',2,'mix',[['caco3',1],['hcl',2]],[['cacl2',1],['h2o',1],['co2',1]],'酸鹼','劇烈冒泡。'],
+['glass',2,'heat',[['na2co3',1],['caco3',1],['sio2',6]],[['glass',1],['co2',2]],'助熔','蘇打把石英熔點從 1700 °C 降到約 1000 °C，石灰讓玻璃不溶於水。'],
+['nooxid',2,'mix',[['no',2],['o2',1]],[['no2',2]],'氣體','無色的 NO 一碰空氣就變紅棕色。'],
+// ---- 第三章 ----
+['chloralkali',3,'elec',[['nacl',2],['h2o',2]],[['naoh',2],['cl2',1],['h2',1]],'電解','氯鹼工業：陽極 2Cl⁻ → Cl₂，陰極 2H₂O → H₂ + 2OH⁻。'],
+['waterelec',3,'elec',[['h2o',2]],[['h2',2],['o2',1]],'電解','陰極氫氣的體積正好是陽極氧氣的兩倍。'],
+['bleach',3,'mix',[['cl2',1],['naoh',2]],[['nacl',1],['naclo',1],['h2o',1]],'歧化','Cl₂（0）同時變成 Cl⁻（−1）和 ClO⁻（+1）——自己氧化自己。'],
+['scheele',3,'heat',[['mno2',1],['hcl',4]],[['mncl2',1],['cl2',1],['h2o',2]],'氧化還原','舍勒 1774 年製得氯氣。4 個 HCl 只有 2 個被氧化，另外 2 個當酸。'],
+['haber',3,'cat',[['n2',1],['h2',3]],[['nh3',2]],'化學平衡','哈柏法：鐵催化、高壓。放熱反應，所以溫度太高反而不利產率。'],
+['ostwald',3,'cat',[['nh3',4],['o2',5]],[['no',4],['h2o',6]],'催化','奧士華法：鉑網催化。製硝酸的第一步。'],
+['no2water',3,'mix',[['no2',3],['h2o',1]],[['hno3',2],['no',1]],'歧化','N 從 +4 同時變成 +5（HNO₃）和 +2（NO）。'],
+['contact',3,'cat',[['so2',2],['o2',1]],[['so3',2]],'化學平衡','接觸法：V₂O₅ 催化。氣體莫耳數 3 → 2，加壓有利。'],
+['so3water',3,'mix',[['so3',1],['h2o',1]],[['h2so4',1]],'酸性氧化物','酸性氧化物 + 水 → 含氧酸。'],
+['chlorate',3,'heat',[['cl2',3],['koh',6]],[['kcl',5],['kclo3',1],['h2o',3]],'歧化','熱的濃鹼中，Cl₂ 歧化成 Cl⁻ 與 ClO₃⁻（+5）。'],
+['o2make',3,'heat',[['kclo3',2]],[['kcl',2],['o2',3]],'催化','加一點 MnO₂ 當催化劑，分解溫度大幅降低。'],
+['alelec',3,'elec',[['al2o3',2]],[['al',4],['o2',3]],'電解','霍爾–埃魯法（1886）：氧化鋁溶在熔融冰晶石中電解。鋁從貴過黃金變成廉價金屬。'],
+['thermite',3,'ignite',[['al',2],['fe2o3',1]],[['al2o3',1],['fe',2]],'反應熱','鋁熱反應：放出的熱足以熔化鐵，至今仍用來焊接鐵軌。'],
+['phos',3,'heat',[['bone',2],['sio2',6],['c',10]],[['casio3',6],['co',10],['p4',1]],'同素異形體','磷蒸氣在水下冷凝成蠟狀的白磷。'],
+['pburn',3,'ignite',[['p4',1],['o2',5]],[['p4o10',1]],'燃燒','濃密的白煙。'],
+['ch4burn',3,'ignite',[['ch4',1],['o2',2]],[['co2',1],['h2o',2]],'燃燒熱','每莫耳甲烷燃燒放熱約 890 kJ。'],
+['reform',3,'cat',[['ch4',1],['h2o',1]],[['co',1],['h2',3]],'吸熱反應','蒸汽重組：鎳催化、吸熱。今天大部分的氫氣是這樣來的。'],
+['solvay',3,'mix',[['nacl',1],['nh3',1],['co2',1],['h2o',1]],[['nahco3',1],['nh4cl',1]],'溶解度','索爾維法：NaHCO₃ 溶解度較小，先沉澱出來。'],
+['bake',3,'heat',[['nahco3',2]],[['na2co3',1],['h2o',1],['co2',1]],'熱分解','小蘇打受熱放出 CO₂，讓麵包膨起來。'],
+['nh3make',3,'heat',[['nh4cl',2],['caoh2',1]],[['cacl2',1],['nh3',2],['h2o',2]],'酸鹼','強鹼把弱鹼 NH₃ 趕出來。'],
+['nh4cl',3,'mix',[['nh3',1],['hcl',1]],[['nh4cl',1]],'酸鹼','兩股無色氣體一相遇，憑空生出白煙。'],
+['ferment',3,'ferm',[['glu',1]],[['etoh',2],['co2',2]],'發酵','酵母裡的酶把葡萄糖變成乙醇和 CO₂。'],
+['etohburn',3,'ignite',[['etoh',1],['o2',3]],[['co2',2],['h2o',3]],'燃燒','幾乎看不見的淡藍火焰。'],
+];
+const CATALYST = {haber:'鐵觸媒、高壓',ostwald:'鉑網',contact:'V₂O₅',reform:'鎳',o2make:'MnO₂（不消耗）',ferm:'酵母'};
+
+// ===================== 城鎮建築 =====================
+// [id, 章, 圖示, 名稱, 需求{物質:數量}, 委託人台詞, 問題{q,o(第一個是正解),ex}, 原理卡[標題,內容]]
+const BD = [
+['house',1,'🏠','石屋',{caoh2:6,cao:2},'村長：「冬天前得把石屋的縫補好。老祖宗說要用白火粉調灰泥……」',
+ {q:'灰泥抹上牆後會慢慢變硬，是因為？',o:['Ca(OH)₂ 吸收空氣中的 CO₂，變回 CaCO₃','水分蒸發後 CaO 結晶','和石頭熔在一起','氧化成更硬的氧化物'],ex:'Ca(OH)₂ + CO₂ → CaCO₃ + H₂O。灰泥繞了一圈，又變回當初的石灰石。'},
+ ['熱分解','碳酸鹽受熱放出 CO₂（CaCO₃ → CaO + CO₂），含水礦物放出水，硝酸鹽放出 O₂。']],
+['smithy',1,'⚒️','鐵匠鋪',{cu:4,fe:4},'鐵匠葛倫：「你說綠石頭裡藏著赤銅？煉給我看。順便，鐵也要。」',
+ {q:'2CuO + C → 2Cu + CO₂ 中，誰是還原劑？',o:['C','CuO','Cu','CO₂'],ex:'C 的氧化數從 0 升到 +4，被氧化；能讓別人被還原的，就是還原劑。'},
+ ['氧化還原','氧化數升高＝被氧化（還原劑）；降低＝被還原（氧化劑）。冶金就是用還原劑把金屬從氧化物中解放出來。']],
+['granary',1,'🌾','糧倉',{so2:3,cao:2},'村婦：「糧倉裡的蟲子越來越多。老人說要燒硫磺燻一燻。」',
+ {q:'SO₂ 溶於水，溶液呈？',o:['酸性','鹼性','中性','不溶於水'],ex:'SO₂ + H₂O ⇌ H₂SO₃。非金屬氧化物多半是酸性氧化物；金屬氧化物如 CaO 則是鹼性氧化物。'},
+ ['酸性與鹼性氧化物','非金屬氧化物（CO₂、SO₂、SO₃）溶於水呈酸性；活潑金屬氧化物（Na₂O、CaO）呈鹼性；ZnO、Al₂O₃ 是兩性。']],
+['lantern',1,'🏮','浮空燈籠節',{h2:6},'孩子們：「我們想要會自己飛上天的燈籠！」',
+ {q:'同溫同壓下，H₂ 的密度約是空氣（平均莫耳質量約 29）的幾分之一？',o:['約 1/14','約 1/2','約 1/29','一樣'],ex:'同溫同壓下，氣體密度和莫耳質量成正比：2/29 ≈ 1/14。'},
+ ['氣體密度','同溫同壓下，等體積的氣體含有相同的分子數（亞佛加厥定律），所以密度與莫耳質量成正比。']],
+['zincpot',1,'🍲','鋅鍋工坊',{zn:3,zno:1},'旅店老闆娘：「聽說有種白色的金屬做的鍋不會生鏽？」',
+ {q:'ZnO + C 在高溫反應，鋅卻「消失」了，為什麼？',o:['反應溫度高於鋅的沸點（907 °C），鋅成了蒸氣','鋅被燒成了氧化物','鋅溶進了木炭','鋅變成了 CO'],ex:'所以要在密閉罐裡讓鋅蒸氣冷凝下來——就是蒸餾。'},
+ ['相變與蒸餾','物質在沸點以上會汽化。利用沸點的差異，可以把混合物分開（蒸餾）。']],
+['firewatch',1,'🚒','消防所',{co2:8},'衛兵：「乾季到了，森林常起火。有沒有能悶熄火焰的氣體？」',
+ {q:'CO₂ 能滅火，除了不助燃，還因為它？',o:['密度比空氣大，會覆蓋在火上隔絕氧氣','溫度很低','會和火焰中和','能吸收光'],ex:'CO₂ 莫耳質量 44，比空氣的 29 重，會沉在下方。'},
+ ['質量守恆','化學反應前後，各元素的原子數與總質量不變。這就是方程式必須「配平」的原因。']],
+// ---- 第二章 ----
+['guild',2,'🏛️','鍊金公會',{h2so4:3,hcl:3},'公會考官：「想在王都開工房，先做出兩種強酸。」',
+ {q:'稀釋濃硫酸的正確做法？',o:['把濃硫酸緩緩倒入大量水中','把水倒入濃硫酸','同時倒入','先加熱濃硫酸'],ex:'溶解大量放熱。少量的水倒進酸裡會瞬間沸騰，把酸噴出來。口訣：酸入水。'},
+ ['強酸','HCl、HBr、HI、HNO₃、H₂SO₄、HClO₄ 在水中幾乎完全解離，是強酸。']],
+['vault',2,'🏦','王家銀庫',{agno3:2,agcl:2},'銀庫總管：「我要能驗出海水的藥水，也要一些會在光下變黑的白粉。」',
+ {q:'AgCl 在 0.1 M NaCl 中的溶解度比在純水中？',o:['小得多（同離子效應）','大得多','一樣','無法比較'],ex:'Ksp = [Ag⁺][Cl⁻] 固定，溶液裡已有大量 Cl⁻，能溶的 Ag⁺ 就少了。'},
+ ['溶度積','難溶鹽在水中的溶解平衡 Ksp = [陽離子][陰離子]。離子積 > Ksp 就沉澱；加入同離子會降低溶解度。']],
+['greenhouse',2,'🪴','玻璃溫室',{glass:3},'天文官：「我想要一座能看見星星、又能種花的溫室。」',
+ {q:'只用石英和蘇打做的玻璃會溶於水，加入石灰的作用？',o:['讓玻璃不溶於水、更穩定','降低熔點','讓玻璃變透明','讓玻璃變硬變脆'],ex:'鹼（Na₂O）是助熔劑，CaO 是穩定劑。'},
+ ['網狀固體與助熔劑','SiO₂ 是共價網狀固體。加入 Na₂O 打斷部分 Si–O–Si 鍵，熔點大降。']],
+['bathhouse',2,'♨️','澡堂',{naoh:4,koh:2},'澡堂老闆波莉：「客人想要不傷皮膚的肥皂，要先有夠強的鹼。」',
+ {q:'0.01 M NaOH 溶液（25 °C）的 pH？',o:['12','2','10','14'],ex:'[OH⁻] = 10⁻² → pOH = 2 → pH = 14 − 2 = 12。'},
+ ['pH','pH = −log[H⁺]，25 °C 時 pH + pOH = 14。每差 1，[H⁺] 差 10 倍。']],
+['chapel',2,'⛪','藍頂教堂',{cuso4:3,cuno3:2},'神父：「我想讓教堂的屋頂和天空一樣藍。」',
+ {q:'Cu²⁺ 溶液是藍色，Zn²⁺ 溶液卻無色，主要原因？',o:['Cu²⁺ 的 d 軌域未填滿，能吸收可見光；Zn²⁺ 是 d¹⁰','銅比較重','鋅會吸收所有光','Zn²⁺ 不溶於水'],ex:'過渡金屬離子 d 軌域在配位體作用下分裂，電子吸收特定波長躍遷，我們看到互補色。d⁰ 和 d¹⁰ 通常無色。'},
+ ['過渡金屬的顏色','部分填滿的 d 軌域讓過渡金屬化合物五顏六色：Cu²⁺ 藍、Fe³⁺ 黃褐、Cr₂O₇²⁻ 橘。']],
+['mint',2,'🪙','鑄幣廠',{cu:6,feso4:2},'財政大臣：「北方的藍色泉水能讓鐵變成銅，是真的嗎？」',
+ {q:'Fe + CuSO₄ → FeSO₄ + Cu 能發生，因為？',o:['Fe 比 Cu 活潑，較易失去電子','Cu 比 Fe 活潑','硫酸根是還原劑','只是溶解'],ex:'活潑金屬能把較不活潑金屬從其鹽溶液中置換出來。'},
+ ['金屬活性序','K > Na > Ca > Mg > Al > Zn > Fe > Pb > (H) > Cu > Hg > Ag > Au。排在 H 前面的能從稀酸置換出 H₂。']],
+['academy',2,'📜','王立化學院',{hno3:3,no2:2},'院長：「把分離之水和赤狐煙送來，我們要研究氮的各種模樣。」',
+ {q:'HNO₃、NO₂、NO 中 N 的氧化數依序是？',o:['+5、+4、+2','+3、+4、+2','+5、+2、+4','+6、+4、+2'],ex:'HNO₃：+1 + x − 6 = 0 → +5；NO₂：x − 4 = 0 → +4；NO：+2。'},
+ ['氧化數','化合物中氧多為 −2、氫多為 +1，總和為 0（離子則為電荷數）。同一元素可以有很多種氧化數。']],
+// ---- 第三章 ----
+['thunder',3,'⚡','雷之塔',{cl2:3,naoh:3,h2:3},'雷之賢者：「不需要天空也能造雷。用電，把鹽水拆開。」',
+ {q:'電解 NaCl 水溶液，陰極產生的是？',o:['H₂','Na','Cl₂','O₂'],ex:'水比 Na⁺ 更容易被還原：2H₂O + 2e⁻ → H₂ + 2OH⁻。要得到鈉，得電解熔融的 NaCl。'},
+ ['電解','陽極氧化、陰極還原。用電能強迫非自發反應發生，是化學電池的逆過程。']],
+['clinic',3,'🏥','醫館',{naclo:4},'衛生官：「下城區爆發熱病，我們需要大量的消毒水。」',
+ {q:'Cl₂ + 2NaOH → NaCl + NaClO + H₂O 中，Cl 的氧化數變化？',o:['0 → −1 和 +1（歧化）','0 → −1','0 → +1','沒有變化'],ex:'同一種元素同時被氧化和還原，叫做歧化反應。'},
+ ['歧化反應','同一物質中同一元素一部分被氧化、一部分被還原：Cl₂ 在鹼中、NO₂ 溶於水都是。']],
+['farm',3,'🚜','豐收農田',{nh3:6},'農夫：「田越種越瘦。賢者說空氣裡的氮可以變成肥料？」',
+ {q:'N₂ + 3H₂ ⇌ 2NH₃（ΔH < 0），升高溫度會讓平衡？',o:['往左移，NH₃ 產率下降','往右移','不變','K 變大'],ex:'放熱反應升溫，平衡往吸熱方向（左）移，K 變小。但溫度太低反應太慢，所以工業取折衷約 450 °C、高壓。'},
+ ['勒沙特列原理','平衡受到擾動時，會往抵銷擾動的方向移動。只有溫度會改變 K。']],
+['acidworks',3,'🏭','硫酸工廠',{so3:4,h2so4:2},'工廠主：「王國需要大量硫酸。綠礬太慢了。」',
+ {q:'接觸法中加入 V₂O₅ 的作用？',o:['降低活化能，加快反應','讓平衡往右移','增加產物的量','提高反應熱'],ex:'催化劑同時加快正逆反應，讓平衡更快到達，但不改變平衡位置與 K。'},
+ ['催化劑','提供活化能較低的新路徑，本身不被消耗。不改變 ΔH，也不改變平衡常數。']],
+['bridge',3,'🌉','鋁之橋',{al:4},'王：「傳說有一種比銀還亮、卻比鐵輕得多的金屬？」',
+ {q:'鋁為什麼不能像鐵一樣用碳還原？',o:['鋁和氧結合得太穩定，碳搶不過','鋁太輕','鋁會和碳反應','鋁礦太少'],ex:'越活潑的金屬，氧化物越穩定。K、Na、Ca、Mg、Al 都得用電解。'},
+ ['金屬的提取','活性低的金屬以元素存在；中等的（Fe、Cu、Zn）用碳還原；最活潑的只能電解。']],
+['railway',3,'🛤️','鐵道',{fe:6,al2o3:2},'工程師：「鐵軌要接起來，但這裡沒有能熔鐵的爐子。」',
+ {q:'鋁熱反應能熔化鐵，主要是因為？',o:['反應大量放熱（ΔH 非常負）','活化能很低','產物是液體','鋁會導電'],ex:'Al₂O₃ 生成熱遠比 Fe₂O₃ 負，差值以熱的形式放出，溫度可達 2500 °C。'},
+ ['黑斯定律','反應熱只與始末狀態有關。ΔH = Σ產物生成熱 − Σ反應物生成熱。']],
+['bakery',3,'🥐','麵包坊',{nahco3:4,etoh:2},'麵包師：「我想做出蓬鬆的麵包，還有一點點葡萄酒。」',
+ {q:'2NaHCO₃ → Na₂CO₃ + H₂O + CO₂，84 g NaHCO₃（1 mol）可放出幾莫耳 CO₂？',o:['0.5','1','2','0.25'],ex:'係數比 NaHCO₃ : CO₂ = 2 : 1。'},
+ ['化學計量','方程式的係數比就是莫耳數比。先換算成莫耳，再用係數比，最後換回質量或體積。']],
+['beacon',3,'🗼','冥火燈塔',{p4:2,p4o10:1},'港口的醫師：「夜裡的船看不見岸。聽說有種石頭會自己發光。」',
+ {q:'白磷和紅磷互為？',o:['同素異形體','同位素','同分異構物','同系物'],ex:'同一元素、不同結構的單質。白磷是 P₄ 四面體，紅磷是長鏈聚合。'},
+ ['同素異形體','鑽石、石墨、C₆₀；O₂ 與 O₃；白磷與紅磷——同一種元素的不同單質。']],
+['spire',3,'✨','賢者之塔頂',{kclo3:2,hno3:4,al:2,o2:4},'大賢者：「最後的試煉。把你們在這個世界學到的一切，帶到塔頂來。」',
+ {q:'2KClO₃ → 2KCl + 3O₂，若要 3 mol O₂，需要幾 mol KClO₃？',o:['2','3','1','4.5'],ex:'係數比 KClO₃ : O₂ = 2 : 3。'},
+ ['化學不是魔法','這個世界的魔法，全都可以配平。']],
+];
+const CHN = [null,'第一章 · 霧谷村','第二章 · 王都艾爾瓦','第三章 · 賢者之塔'];
+const CHNEED = [0,0,4,5]; // 開啟該章需要上一章完成幾棟
+
+// ===================== 採集問答（普化） =====================
+// [題目, [正解, 錯1, 錯2, 錯3], 解說, 主題]
+const QB = [
+['同一週期由左至右，原子半徑通常？',['變小','變大','不變','先變大再變小'],'有效核電荷增加，電子被拉得更近。','週期趨勢'],
+['同一族由上而下，第一游離能通常？',['變小','變大','不變','沒有規律'],'電子離核越遠、遮蔽越多，越容易被移走。','週期趨勢'],
+['下列何者電負度最大？',['F','O','Cl','N'],'F 是電負度最大的元素（約 4.0）。','週期趨勢'],
+['Na⁺ 與 Ne 的關係是？',['電子數相同（等電子）','質子數相同','中子數相同','化學性質相同'],'兩者都有 10 個電子。','原子結構'],
+['¹⁴C 與 ¹²C 互為？',['同位素','同素異形體','同分異構物','同系物'],'質子數相同、中子數不同。','原子結構'],
+['鑽石與石墨互為？',['同素異形體','同位素','同分異構物','同系物'],'同一元素的不同單質。','原子結構'],
+['第三週期元素中，第一游離能最大的是？',['Ar','Cl','Na','Mg'],'鈍氣價殼層全滿，最難移去電子。','週期趨勢'],
+['Mg 的第一游離能大於 Al，主因是？',['Al 移去的是能量較高的 3p 電子','Al 的核電荷較小','Mg 是金屬','Mg 的半徑比 Al 大'],'3p 電子能量較高，又被 3s 遮蔽，較容易移除。','週期趨勢'],
+['電子組態 1s²2s²2p⁶3s¹ 的元素是？',['Na','Mg','Ne','K'],'共 11 個電子。','原子結構'],
+['下列離子半徑最大的是？',['O²⁻','F⁻','Na⁺','Mg²⁺'],'四者都有 10 個電子，質子越少，電子雲越鬆散。','週期趨勢'],
+['CO₂ 的分子形狀？',['直線形','角形','三角錐形','平面三角形'],'C 上沒有孤對電子，兩個雙鍵互相遠離成 180°。','鍵結'],
+['H₂O 的鍵角約為？',['104.5°','180°','109.5°','120°'],'兩對孤對電子把鍵角從 109.5° 壓小。','鍵結'],
+['NH₃ 的分子形狀？',['三角錐形','平面三角形','四面體','T 形'],'三個鍵加一對孤對電子。','鍵結'],
+['下列何者是非極性分子？',['CO₂','H₂O','NH₃','HCl'],'CO₂ 兩個 C=O 鍵極性大小相等、方向相反，互相抵銷。','鍵結'],
+['冰會浮在水上，主因是？',['氫鍵讓冰形成較空曠的六角晶格，密度較小','冰裡有空氣','冰的分子量較小','冰是網狀共價固體'],'固態水密度約 0.92 g/cm³，比液態小。','分子間力'],
+['HF 的沸點遠高於 HCl，主因是？',['HF 分子間有氫鍵','HF 分子量較大','HF 是離子化合物','HCl 極性較大'],'H 接在 F、O、N 上才形成氫鍵。','分子間力'],
+['NaCl 熔點很高（801 °C），因為它是？',['離子晶體，正負離子間的靜電力強','分子晶體','金屬晶體','有氫鍵'],'打散晶格要克服大量的離子鍵。','鍵結'],
+['CH₄ 中碳的混成軌域？',['sp³','sp²','sp','沒有混成'],'四個等價鍵指向四面體頂點。','鍵結'],
+['乙烯 C₂H₄ 中碳的混成軌域？',['sp²','sp³','sp','dsp²'],'三個 σ 鍵成平面三角形，剩下的 p 軌域形成 π 鍵。','鍵結'],
+['石英 SiO₂ 屬於哪一類固體？',['共價網狀固體','分子固體','離子固體','金屬固體'],'每個 Si 以共價鍵連四個 O，連成巨大網路。','鍵結'],
+['1 莫耳粒子數約為？',['6.02×10²³','3.01×10²³','6.02×10²²','22.4'],'亞佛加厥常數。','計量'],
+['18 克水是幾莫耳？',['1','2','0.5','18'],'H₂O 莫耳質量 18 g/mol。','計量'],
+['44 g CO₂ 中有幾莫耳氧原子？',['2','1','4','44'],'1 mol CO₂ 含 2 mol O。','計量'],
+['0 °C、1 atm 下，1 莫耳理想氣體約佔？',['22.4 L','24.5 L','1 L','11.2 L'],'STP 莫耳體積。25 °C 時約 24.5 L。','氣體'],
+['化學反應前後一定不變的是？',['各元素的原子總數與總質量','分子總數','物質的顏色','氣體總體積'],'質量守恆，這就是配平的意義。','計量'],
+['2H₂ + O₂ → 2H₂O，4 g H₂ 完全反應需要幾克 O₂？',['32','16','64','8'],'4 g H₂ = 2 mol，需 1 mol O₂ = 32 g。','計量'],
+['「限量試劑」是指？',['最先用完、決定產量的反應物','用量最多的反應物','催化劑','產物中最少的那個'],'產量由最先耗盡的反應物決定。','計量'],
+['某化合物含 C 80%、H 20%（質量），實驗式為？',['CH₃','CH₂','CH₄','C₂H₅'],'C：80/12 ≈ 6.67；H：20/1 = 20；比例 1 : 3。','計量'],
+['1 M NaOH 溶液 250 mL 含 NaOH 幾克？',['10','40','4','25'],'0.25 mol × 40 g/mol = 10 g。','溶液'],
+['100 mL 2 M HCl 稀釋成 0.5 M，最後體積？',['400 mL','200 mL','250 mL','50 mL'],'M₁V₁ = M₂V₂：2 × 100 = 0.5 × V。','溶液'],
+['定溫下把氣體體積壓成一半，壓力變為？',['2 倍','1/2','不變','4 倍'],'波以耳定律 PV = 定值。','氣體'],
+['定壓下溫度由 27 °C 升到 327 °C，體積變為？',['2 倍','約 12 倍','不變','1/2'],'查理定律要用絕對溫度：300 K → 600 K。','氣體'],
+['同溫同壓下，等體積的 H₂ 與 O₂？',['分子數相同','質量相同','密度相同','原子量相同'],'亞佛加厥定律。','氣體'],
+['同溫下，平均分子速率最快的是？',['H₂','He','O₂','CO₂'],'動能相同，質量越小越快（速率 ∝ 1/√M）。','氣體'],
+['1 atm 的空氣中 O₂ 約佔 21%，O₂ 的分壓約？',['0.21 atm','0.79 atm','1 atm','0.5 atm'],'道耳頓分壓定律：分壓 = 總壓 × 莫耳分率。','氣體'],
+['真實氣體在什麼條件下最接近理想氣體？',['高溫低壓','低溫高壓','低溫低壓','高溫高壓'],'分子相距遠、動能大，分子間力與分子體積可忽略。','氣體'],
+['0.01 M HCl 的 pH？',['2','1','12','0.01'],'強酸完全解離，[H⁺] = 10⁻²。','酸鹼'],
+['0.001 M NaOH 的 pH（25 °C）？',['11','3','7','10'],'pOH = 3，pH = 14 − 3。','酸鹼'],
+['下列何者是弱酸？',['CH₃COOH','HCl','HNO₃','H₂SO₄'],'醋酸在水中只部分解離。','酸鹼'],
+['NH₄Cl 水溶液呈？',['酸性','鹼性','中性','不一定'],'NH₄⁺ 是弱鹼的共軛酸，會水解產生 H⁺。','酸鹼'],
+['CH₃COONa 水溶液呈？',['鹼性','酸性','中性','不溶於水'],'CH₃COO⁻ 是弱酸的共軛鹼，水解產生 OH⁻。','酸鹼'],
+['緩衝溶液可由下列哪一組組成？',['CH₃COOH 與 CH₃COONa','HCl 與 NaOH','HCl 與 NaCl','純水'],'弱酸與其共軛鹼能抵抗少量酸鹼。','酸鹼'],
+['布忍斯特–洛瑞酸的定義？',['質子（H⁺）給予者','電子對給予者','OH⁻ 給予者','質子接受者'],'酸給 H⁺，鹼接受 H⁺。','酸鹼'],
+['pH 從 3 變成 5，[H⁺] 變為原來的？',['1/100','1/2','100 倍','2 倍'],'差 2 個 pH 單位，差 10² 倍。','酸鹼'],
+['同為 0.1 m 的水溶液，凝固點最低的是？',['CaCl₂','NaCl','葡萄糖','尿素'],'CaCl₂ 解離出 3 個粒子，依數性質最明顯。','溶液'],
+['冬天在路面撒鹽防結冰，原理是？',['凝固點下降','沸點上升','鹽溶解放熱','鹽會吸收水分'],'溶質讓溶液的凝固點比純水低。','溶液'],
+['AgCl 在哪一種液體中溶解度最小？',['0.1 M NaCl','純水','0.1 M NaNO₃','0.1 M NH₃'],'同離子效應；NH₃ 反而會形成錯離子使 AgCl 溶解。','溶液'],
+['H₂SO₄ 中 S 的氧化數？',['+6','+4','−2','+2'],'2(+1) + x + 4(−2) = 0。','氧化還原'],
+['2CuO + C → 2Cu + CO₂ 中的還原劑是？',['C','CuO','Cu','CO₂'],'C 被氧化（0 → +4），是還原劑。','氧化還原'],
+['鋅銅電池中，電子如何流動？',['由鋅極經導線流向銅極','由銅極流向鋅極','經鹽橋流動','不流動'],'鋅較活潑，失去電子（負極）。','電化學'],
+['電解時，陽極發生的是？',['氧化','還原','中和','沉澱'],'不論電池或電解：陽極氧化、陰極還原。','電化學'],
+['以惰性電極電解 CuSO₄ 水溶液，陰極析出？',['銅','氧氣','氫氣','硫'],'Cu²⁺ 比水容易被還原。','電化學'],
+['鹽橋的作用？',['讓離子移動以維持電中性','讓電子通過','提供反應物','加熱溶液'],'電子走導線，離子走鹽橋。','電化學'],
+['下列哪種金屬能從稀鹽酸中置換出氫氣？',['Zn','Cu','Ag','Au'],'排在 H 前面的金屬才行。','氧化還原'],
+['鍍鋅鐵（白鐵）刮傷後仍不易生鏽，因為？',['鋅較活潑，會優先被氧化','鋅比鐵硬','鋅不導電','鋅會吸水'],'犧牲陽極保護法。','電化學'],
+['放熱反應的 ΔH？',['小於 0','大於 0','等於 0','不一定'],'系統放出熱，焓減少。','熱化學'],
+['催化劑的作用是？',['降低活化能，加快反應速率','改變平衡常數','增加產率','改變 ΔH'],'正逆反應同時加快，平衡位置不變。','動力學'],
+['N₂ + 3H₂ ⇌ 2NH₃（放熱），哪個條件讓平衡往右？',['加壓','升溫','加催化劑','移走 N₂'],'加壓往氣體莫耳數少的一邊移。','化學平衡'],
+['溫度升高，反應速率通常變快，主因是？',['越過活化能的分子比例增加','活化能變小','碰撞次數變少','平衡常數變大'],'波茲曼分布的高能尾巴變厚。','動力學'],
+['平衡常數 K 會隨什麼改變？',['溫度','濃度','壓力','催化劑'],'只有溫度會改變 K。','化學平衡'],
+['黑斯定律說的是？',['反應熱只與始末狀態有關，與途徑無關','速率與濃度成正比','體積與溫度成正比','質量守恆'],'焓是狀態函數。','熱化學'],
+['冰融化成水的過程？',['ΔH > 0、ΔS > 0','ΔH < 0、ΔS < 0','ΔH > 0、ΔS < 0','ΔH < 0、ΔS > 0'],'吸熱、變得更亂。','熱化學'],
+['一級反應的半衰期？',['與初濃度無關','與初濃度成正比','與初濃度成反比','隨時間越來越長'],'t½ = 0.693 / k。','動力學'],
+['粉末狀反應物比塊狀反應快，因為？',['表面積大，碰撞機會多','活化能降低','溫度較高','平衡改變'],'只有表面的粒子能參與碰撞。','動力學'],
+['下列何者是過渡金屬？',['Fe','Na','Al','Ca'],'d 區元素。','元素'],
+['[Cu(NH₃)₄]²⁺ 中 Cu 的配位數？',['4','2','6','1'],'四個 NH₃ 各用一對孤對電子配位。','錯合物'],
+['常溫常壓下，哪一種鹵素是液體？',['Br₂','Cl₂','I₂','F₂'],'F₂、Cl₂ 是氣體，Br₂ 液體，I₂ 固體。','元素'],
+['鹼金屬由上而下，和水反應？',['越來越劇烈','越來越溫和','都不反應','一樣劇烈'],'越往下越容易失去電子。','元素'],
+['鈍氣不易反應的原因？',['價殼層電子已填滿','太輕','沒有電子','都是氣體'],'穩定的八隅體（He 為 2）。','元素'],
+];
+
+// 氧化數題庫：[化學式, 元素, 氧化數]
+const OXN = [['MnO2','Mn',4],['KMnO4','Mn',7],['K2Cr2O7','Cr',6],['H2SO4','S',6],['SO2','S',4],['HNO3','N',5],['NH3','N',-3],['NaClO','Cl',1],['KClO3','Cl',5],['Fe2O3','Fe',3],['CO','C',2],['H2O2','O',-1],['NO2','N',4],['P4O10','P',5],['NaH','H',-1],['CH4','C',-4],['NH4Cl','N',-3],['Na2S2O3','S',2]];
+// @@DATA_END
+// ===================== 小工具 =====================
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SUBD='₀₁₂₃₄₅₆₇₈₉';
+const fsub=f=>f.replace(/([A-Za-z\)])(\d+)/g,(m,a,d)=>a+[...d].map(x=>SUBD[x]).join(''));
+const nm=id=>IT[id][0], fm=id=>fsub(IT[id][1]);
+const isRaw=id=>!!IT[id][4];
+function parseGroup(s){const st=[{}];let i=0;while(i<s.length){const ch=s[i];
+ if(ch==='('){st.push({});i++;continue}
+ if(ch===')'){i++;let n='';while(/\d/.test(s[i]||''))n+=s[i++];const g=st.pop(),k=+(n||1);for(const e in g)st[st.length-1][e]=(st[st.length-1][e]||0)+g[e]*k;continue}
+ const mm=s.slice(i).match(/^([A-Z][a-z]?)(\d*)/);i+=mm[0].length;st[st.length-1][mm[1]]=(st[st.length-1][mm[1]]||0)+ +(mm[2]||1)}
+ return st[0]}
+const PF={};
+function atoms(id){if(PF[id])return PF[id];const t={};IT[id][1].split('·').forEach(p=>{const mm=p.match(/^(\d+)(.*)$/);const k=mm?+mm[1]:1;const g=parseGroup(mm?mm[2]:p);for(const e in g)t[e]=(t[e]||0)+g[e]*k});return PF[id]=t}
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const shuffle=(a,r=Math.random)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600)}
+function confetti(){const e=['✨','⚗️','🧪','🌟','💧','🔥'];for(let i=0;i<18;i++){const s=document.createElement('div');s.className='conf';s.textContent=e[i%e.length];s.style.left=Math.random()*100+'vw';s.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),3000)}}
+function ago(ts){const m=Math.round((Date.now()-ts)/6e4);if(m<1)return'剛剛';if(m<60)return m+' 分鐘前';const h=Math.round(m/60);if(h<24)return h+' 小時前';return Math.round(h/24)+' 天前'}
+function todayStr(off=0){const d=new Date(Date.now()+8*36e5-off*864e5);return d.toISOString().slice(0,10)}
+const RXM={};RX.forEach(r=>RXM[r[0]]=r);
+const BDM={};BD.forEach(b=>BDM[b[0]]=b);
+
+// ===================== 身分（單字花園同款：連點標題 5 下切換） =====================
+const NM={j:'傑',her:'彣'};
+const HOME={j:'n',her:'s'};
+let ROLE='her';try{ROLE=localStorage.getItem('mb_role')==='j'?'j':'her'}catch(e){}
+const ME=()=>ROLE, PA=()=>ROLE==='j'?'her':'j';
+const meN=()=>NM[ME()], paN=()=>NM[PA()];
+const KEY=()=>'mb_save_'+ROLE;
+
+// ===================== 存檔 =====================
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{}}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
+let save=load();
+function clean(){
+ for(const k in save.inv){if(!IT[k]||!(save.inv[k]>0))delete save.inv[k]}
+ for(const k in save.solved)if(!RXM[k])delete save.solved[k];
+ for(const b in save.don){if(!BDM[b]){delete save.don[b];continue}for(const i in save.don[b])if(!IT[i])delete save.don[b][i]}
+}
+clean();
+function _persist(){try{localStorage.setItem(KEY(),JSON.stringify(save))}catch(e){}}
+function persist(){save.svt=Date.now();_persist();scheduleSync()}
+const inv=id=>save.inv[id]||0;
+function addInv(id,n){save.inv[id]=Math.max(0,inv(id)+n);if(!save.inv[id])delete save.inv[id]}
+function pushEv(e){e.t=Date.now();save.ev.unshift(e);save.ev=save.ev.slice(0,24)}
+
+// ===================== 夥伴（Firebase 同步；沒有 Firebase 時單機也能玩） =====================
+let P=null; // 夥伴的公開資料
+const SY={on:false,db:null,timer:null,last:''};
+function sanitize(d){
+ if(!d||typeof d!=='object')return null;
+ const n=(v,a,b)=>Math.max(a,Math.min(b,Math.floor(+v||0)));
+ const don={};if(d.don&&typeof d.don==='object')for(const b in d.don){if(!BDM[b]||typeof d.don[b]!=='object')continue;don[b]={};for(const i in d.don[b])if(IT[i])don[b][i]=n(d.don[b][i],0,9999)}
+ const ev=(Array.isArray(d.ev)?d.ev:[]).slice(0,24).map(e=>({k:String(e.k||'').slice(0,8),t:n(e.t,0,9e15),b:BDM[e.b]?e.b:undefined,it:IT[e.it]?e.it:undefined,r:RXM[e.r]?e.r:undefined,n:n(e.n,0,9999),s:n(e.s,0,3)}));
+ const out=(Array.isArray(d.out)?d.out:[]).slice(0,30).filter(g=>g&&IT[g.it]).map(g=>({id:String(g.id).slice(0,24),it:g.it,n:n(g.n,1,999),t:n(g.t,0,9e15)}));
+ const dl=d.daily&&typeof d.daily==='object'?{d:String(d.daily.d||'').slice(0,10),ans:(Array.isArray(d.daily.ans)?d.daily.ans:[]).slice(0,3).map(x=>n(x,0,3)),ok:(Array.isArray(d.daily.ok)?d.daily.ok:[]).slice(0,3).map(Boolean)}:null;
+ const dh={};if(d.dhist&&typeof d.dhist==='object')for(const k in d.dhist)if(/^\d{4}-\d\d-\d\d$/.test(k))dh[k]=n(d.dhist[k],0,3);
+ return{don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+}
+function pub(){
+ const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
+ return{pv:1,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+}
+function scheduleSync(){if(!SY.on)return;clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
+async function pushMine(){
+ if(!SY.on)return;clearTimeout(SY.timer);
+ const p=pub(),sv=JSON.stringify(save),key=JSON.stringify(p)+sv;if(key===SY.last)return;
+ try{await SY.db.doc(`balance/${PAIR}/players/${ME()}`).set({...p,sv,svt:save.svt||Date.now(),ts:Date.now()});SY.last=key}catch(e){console.warn('sync',e)}
+}
+async function restore(){
+ try{const snap=await SY.db.doc(`balance/${PAIR}/players/${ME()}`).get({source:'server'});if(!snap.exists)return;
+  const d=snap.data();if(!d||typeof d.sv!=='string')return;const c=JSON.parse(d.sv);if(!c||!c.v)return;
+  const empty=!save.intro&&!Object.keys(save.solved).length;
+  if(empty||(+d.svt||0)>(save.svt||0)){save=Object.assign(defSave(),c);clean();_persist();if(empty)toast('☁️ 已從雲端找回你的工房');render()}
+ }catch(e){console.warn('restore',e)}
+}
+function onPartner(raw){
+ const prev=P;P=sanitize(raw);
+ claimGifts();
+ if(prev&&P&&!document.hidden){const ne=P.ev.filter(e=>e.t>(prev.ev[0]?prev.ev[0].t:0));if(ne.length)toast(`${paN()}：${evText(ne[0],PA(),true)}`)}
+ if(!$('modal').classList.contains('show'))render();else renderNav();
+}
+async function initSync(){
+ const cfg=window.__FB_CONFIG;if(!cfg||!window.firebase)return;
+ try{firebase.initializeApp(cfg);await firebase.auth().signInAnonymously();SY.db=firebase.firestore();
+  await restore();SY.on=true;
+  SY.db.doc(`balance/${PAIR}/players/${PA()}`).onSnapshot(s=>onPartner(s.exists?s.data():null),e=>console.warn('sync',e));
+  pushMine();
+ }catch(e){console.warn('sync init',e)}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){save.lastVisit=Date.now();_persist();pushMine()}});
+addEventListener('pagehide',()=>{save.lastVisit=Date.now();_persist();pushMine()});
+
+// ---- 送禮 ----
+function claimGifts(){
+ if(!P)return;let got=[];
+ P.out.forEach(g=>{if(!save.claimed.includes(g.id)){save.claimed.push(g.id);addInv(g.it,g.n);got.push(g)}});
+ if(got.length){save.claimed=save.claimed.slice(-80);persist();setTimeout(()=>{toast(`🎁 ${paN()}寄來了 ${got.map(g=>nm(g.it)+'×'+g.n).join('、')}`)},400)}
+}
+function sendGift(id,n){
+ if(inv(id)<n||n<1)return;addInv(id,-n);
+ const g={id:ME()+Date.now().toString(36),it:id,n,t:Date.now()};save.out.unshift(g);save.out=save.out.slice(0,30);
+ pushEv({k:'gift',it:id,n});persist();toast(`📦 已寄出 ${nm(id)}×${n}，${paN()}下次上線就會收到`);
+}
+
+// ===================== 城鎮狀態 =====================
+function donOf(src,b,i){return src&&src.don&&src.don[b]&&src.don[b][i]||0}
+function prog(b){const need=BDM[b][4];let r={};for(const i in need){const a=donOf(save,b,i),p=donOf(P,b,i);r[i]={me:a,pa:p,need:need[i]}}return r}
+function bDone(b){const p=prog(b);return Object.values(p).every(x=>x.me+x.pa>=x.need)}
+function chDoneN(c){return BD.filter(b=>b[1]===c&&bDone(b[0])).length}
+function chOpen(c){return c===1||chDoneN(c-1)>=CHNEED[c]}
+const curCh=()=>[3,2].find(chOpen)||1;
+function bPct(b){const p=prog(b);let t=0,m=0,q=0;for(const i in p){t+=p[i].need;m+=Math.min(p[i].me,p[i].need);q+=Math.min(p[i].pa,Math.max(0,p[i].need-Math.min(p[i].me,p[i].need)))}return[m/t,q/t]}
+const RANKS=[[0,'被召喚的學徒'],[40,'村裡的怪人'],[120,'工房主'],[260,'王都鍊金術師'],[450,'王室化學師'],[700,'賢者之塔的客人'],[1000,'異界的拉瓦節']];
+const rankOf=r=>RANKS.filter(x=>r>=x[0]).pop()[1];
+
+// ===================== 事件文字 =====================
+function evText(e,who,short){
+ const b=e.b&&BDM[e.b],it=e.it&&IT[e.it];
+ switch(e.k){
+  case'don':return`把 ${it?nm(e.it):'?'}×${e.n} 送去「${b?b[3]:'?'}」`;
+  case'build':return`完成了最後一塊磚——「${b?b[3]:'?'}」落成 ${b?b[2]:''}`;
+  case'solve':return`第一次配平了 ${RXM[e.r]?eqText(RXM[e.r],true,true):'?'}`;
+  case'gift':return`寄了 ${it?nm(e.it):'?'}×${e.n} 給${who===ME()?paN():meN()}`;
+  case'daily':return`做完了今日告示：${e.s}/3`;
+  case'card':return`解開了「${b?b[3]:'?'}」的原理卡`;
+ }return'';
+}
+
+// ===================== 方程式 =====================
+function eqText(r,bal=true,plain=false){
+ const side=L=>L.map(([id,c])=>(bal&&c>1?(plain?c:`<span class="co">${c}</span>`):'')+fm(id)).join(' + ');
+ return side(r[3])+(r[0]==='haber'||r[0]==='contact'?' ⇌ ':' → ')+side(r[4]);
+}
+function maxRuns(r){return Math.min(...r[3].map(([id,c])=>Math.floor(inv(id)/c)))}
+function makers(id){return RX.filter(r=>chOpen(r[1])&&r[4].some(([x])=>x===id))}
+
+// ===================== 畫面 =====================
+let TAB='town';
+const TABS=[['town','🏘️','城鎮'],['lab','⚗️','工房'],['gather','⛏️','採集'],['daily','📜','告示'],['book','📘','筆記']];
+function renderNav(){
+ const dDot=!(save.daily&&save.daily.d===todayStr());
+ $('nav').innerHTML=TABS.map(([k,ic,n])=>`<button class="${TAB===k?'on':''}" data-tab="${k}"><span>${ic}</span>${n}${k==='daily'&&dDot?'<i class="dot"></i>':''}</button>`).join('');
+ $('nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();scrollTo(0,0)});
+}
+function renderHead(){
+ $('subt').textContent=`${CHN[curCh()]} · ${meN()}的${HOME[ME()]==='n'?'北方':'南方'}工房`;
+ $('hstats').innerHTML=`聲望 <b>${save.rep}</b><br>${rankOf(save.rep)}`;
+}
+function render(){renderHead();renderNav();const h={town:vTown,lab:vLab,gather:vGather,daily:vDaily,book:vBook}[TAB]();$('main').innerHTML=h;bind();
+ $('foot').innerHTML=TAB==='book'?`<button data-a="reset">${resetArm?'再按一次確認（只清除這台裝置與雲端上「你」的進度）':'重置我的進度'}</button>`:'';bind($('foot'))}
+
+// ---- 城鎮 ----
+function vTown(){
+ let h='';
+ // 你離開後
+ if(P){
+  const since=save.prevVisit||0,ne=P.ev.filter(e=>e.t>since).slice(0,4);
+  const ds=P.daily&&P.daily.d===todayStr()?`今日告示 ${P.daily.ok.filter(Boolean).length}/3`:'今天還沒看告示';
+  h+=`<div class="banner">${ne.length?`<b>你離開後，${paN()}</b>：<br>${ne.map(e=>'・'+evText(e,PA())).join('<br>')}`:`<b>${paN()}</b> ${P.ts?ago(P.ts)+'來過':'還沒來過'}。`}<div class="small" style="margin-top:3px">${paN()}：聲望 ${P.rep} · ${ds}</div></div>`;
+ } else h+=`<div class="banner">${SY.on?`等${paN()}第一次來到這個世界……`:`<span class="small">（目前是單機模式：還沒連上${paN()}的世界，進度只存在這台裝置）</span>`}</div>`;
+ [1,2,3].forEach(c=>{
+  const list=BD.filter(b=>b[1]===c);
+  if(!chOpen(c)){h+=`<div class="sec locked">🔒 ${CHN[c]}<small>上一章再完成 ${CHNEED[c]-chDoneN(c-1)} 棟建築就會開啟</small></div>`;return}
+  h+=`<div class="sec">${CHN[c]}<small>${chDoneN(c)}/${list.length}</small></div><div class="town">`;
+  list.forEach(b=>{const d=bDone(b[0]),[m,q]=bPct(b[0]);const can=!d&&Object.keys(b[4]).some(i=>inv(i)>0&&prog(b[0])[i].me+prog(b[0])[i].pa<b[4][i]);
+   const qz=d&&!save.quiz[b[0]];
+   h+=`<div class="bld ${d?'done':'wip'}" data-a="bld" data-v="${b[0]}">${can?'<span class="need">● 可捐</span>':''}${qz?'<span class="need">❓</span>':''}<div class="ic">${b[2]}</div><div class="nm">${b[3]}</div>${d?'<div class="small">落成</div>':`<div class="bar"><i style="width:${m*100}%;background:var(--me)"></i><i style="width:${q*100}%;background:var(--her)"></i></div>`}</div>`});
+  h+=`</div>`;
+ });
+ // 動態
+ const all=[...save.ev.map(e=>[e,ME()]),...(P?P.ev.map(e=>[e,PA()]):[])].sort((a,b)=>b[0].t-a[0].t).slice(0,12);
+ if(all.length){h+=`<div class="sec">鎮上的消息</div><div class="card feed">${all.map(([e,w])=>`<div class="ev"><span class="${w===ME()?'who-me':'who-her'}">${NM[w]}</span><span>${evText(e,w)}</span><span class="t">${ago(e.t)}</span></div>`).join('')}</div>`}
+ return h;
+}
+function openBld(id){
+ const b=BDM[id],d=bDone(id),p=prog(id);
+ let h=`<h3>${b[2]} ${b[3]}</h3><div class="muted">${b[5]}</div>`;
+ h+=`<div class="legend" style="margin-top:8px"><i style="background:var(--me)"></i>${meN()}<i style="background:var(--her)"></i>${paN()}</div>`;
+ for(const i in p){const x=p[i],tot=x.me+x.pa,left=Math.max(0,x.need-tot);
+  const a=Math.min(x.me,x.need),bb=Math.min(x.pa,x.need-a);
+  h+=`<div class="need"><div class="lbl"><span>${nm(i)} <span class="small">${fm(i)}</span></span><span>${Math.min(tot,x.need)}/${x.need}</span></div><div class="bar"><i style="width:${a/x.need*100}%;background:var(--me)"></i><i style="width:${bb/x.need*100}%;background:var(--her)"></i></div>`;
+  if(!d&&left){const have=inv(i);
+   h+=have?`<button class="btn gold" data-a="donate" data-v="${id}" data-i="${i}">捐出 ${Math.min(have,left)} 個（倉庫有 ${have}）</button>`
+     :`<div class="small">倉庫裡沒有。${isRaw(i)?`可以去「採集」（${SRC[IT[i][4]]}）`:makers(i).length?`工房：${makers(i).map(r=>eqText(r,!!save.solved[r[0]],true)).slice(0,2).join('；')}`:'還沒學會怎麼做'}</div>`}
+  h+=`</div>`}
+ if(d){
+  const tot={};[[save,ME()],[P,PA()]].forEach(([s,w])=>{for(const i in b[4])tot[w]=(tot[w]||0)+donOf(s,id,i)});
+  h+=`<div class="plaque">🪧 落成銘牌：${meN()} ×${tot[ME()]||0}　${paN()} ×${tot[PA()]||0}</div>`;
+  if(!save.quiz[id])h+=`<div class="ex" style="margin-top:10px">${b[5].split('：')[0]}還有一個問題想問你——答對就能拿到原理卡。</div><button class="btn gold" data-a="bquiz" data-v="${id}">回答「為什麼」</button>`;
+  else h+=`<div class="card cardk" style="margin-top:10px"><h3>📘 ${b[7][0]}</h3><div class="small">${b[7][1]}</div></div>`;
+ }
+ h+=`<button class="btn ghost" data-a="close">關閉</button>`;
+ modal(h);
+}
+function donate(id,i){
+ const p=prog(id)[i],left=Math.max(0,p.need-p.me-p.pa),n=Math.min(inv(i),left);if(!n)return;
+ const was=bDone(id);addInv(i,-n);save.don[id]=save.don[id]||{};save.don[id][i]=(save.don[id][i]||0)+n;save.rep+=n*2;
+ pushEv({k:'don',b:id,it:i,n});
+ if(!was&&bDone(id)){pushEv({k:'build',b:id});save.rep+=20;confetti();toast(`🎉「${BDM[id][3]}」落成了！`)}
+ else toast(`已捐出 ${nm(i)}×${n}　聲望 +${n*2}`);
+ const before=curCh();persist();
+ if(curCh()>before)setTimeout(()=>{toast(`🗺️ 開啟了${CHN[curCh()]}！新的反應與建築`)},1600);
+ openBld(id);renderHead();
+}
+function bQuiz(id){
+ const b=BDM[id],qz=b[6],opts=shuffle(qz.o);
+ modal(`<h3>${b[2]} ${b[3]}</h3><div class="dq">${qz.q}</div>${opts.map(o=>`<button class="opt" data-a="bqa" data-v="${id}" data-o="${esc(o)}">${o}</button>`).join('')}<div id="qfb"></div>`);
+}
+function bQuizAns(id,o,btn){
+ const b=BDM[id],qz=b[6],ok=o===qz.o[0];
+ document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===qz.o[0])x.classList.add('right')});
+ if(!ok)btn.classList.add('wrong');
+ let h=`<div class="ex">${ok?'<span class="ok">✓ 正確！</span> ':'<span class="bad">✗ 不太對。</span> '}${qz.ex}</div>`;
+ if(ok){save.quiz[id]=1;save.rep+=10;pushEv({k:'card',b:id});persist();h+=`<div class="card cardk"><h3>📘 獲得原理卡：${b[7][0]}</h3><div class="small">${b[7][1]}</div></div><button class="btn gold" data-a="close">收下</button>`}
+ else h+=`<button class="btn" data-a="bquiz" data-v="${id}">讀完了，再答一次</button>`;
+ $('qfb').innerHTML=h;bind($('qfb'));
+}
+
+// ---- 工房 ----
+function vLab(){
+ let h='';
+ const items=Object.keys(IT).filter(i=>inv(i)>0);
+ h+=`<div class="sec">倉庫<small>點物質可以看說明、寄給${paN()}</small></div><div class="card"><div class="inv">${items.length?items.map(i=>`<span class="chip ${isRaw(i)?'raw':''}" data-a="item" data-v="${i}"><i class="sw" style="background:${IT[i][2]}"></i>${nm(i)}<b>${inv(i)}</b></span>`).join(''):'<span class="muted">空空的。去「採集」看看吧。</span>'}</div></div>`;
+ [1,2,3].forEach(c=>{
+  if(!chOpen(c))return;
+  const list=RX.filter(r=>r[1]===c);
+  h+=`<div class="sec">${CHN[c].split(' · ')[1]}的反應<small>已配平 ${list.filter(r=>save.solved[r[0]]).length}/${list.length}</small></div>`;
+  list.sort((a,b)=>(maxRuns(b)>0)-(maxRuns(a)>0)).forEach(r=>{
+   const s=!!save.solved[r[0]],m=maxRuns(r);
+   const miss=r[3].filter(([id,c])=>inv(id)<c).map(([id,c])=>`${nm(id)}（${inv(id)}/${c}）`);
+   h+=`<div class="card rx ${m?'':'no'}" data-a="rx" data-v="${r[0]}"><div class="tagrow"><span><span class="pill">${OPN[r[2]][1]} ${OPN[r[2]][0]}</span><span class="pill">${r[5]}</span></span>${s?'<span class="small">✓ 已配平</span>':'<span class="small" style="color:var(--her)">待配平</span>'}</div>
+    <div class="eq">${s?eqText(r):unbal(r)}</div>${m?`<div class="can">材料足夠，可做 ${m} 次</div>`:`<div class="miss">還缺：${miss.join('、')}</div>`}</div>`;
+  });
+ });
+ return h;
+}
+const unbal=r=>r[3].map(([id])=>`<span class="q">?</span>${fm(id)}`).join(' + ')+' → '+r[4].map(([id])=>`<span class="q">?</span>${fm(id)}`).join(' + ');
+let BAL=null;
+function openRx(id){const r=RXM[id];if(!save.solved[id]){BAL={id,c:[...r[3],...r[4]].map(()=>1),tally:false,tries:0,msg:''};drawBal()}else openCraft(id,1)}
+function tallyOf(r,c){const L={},R={};const n=r[3].length;[...r[3],...r[4]].forEach(([id],k)=>{const a=atoms(id),T=k<n?L:R;for(const e in a)T[e]=(T[e]||0)+a[e]*c[k]});return[L,R]}
+function drawBal(){
+ const r=RXM[BAL.id],n=r[3].length,sp=[...r[3],...r[4]];
+ let eq='';sp.forEach(([id],k)=>{
+  if(k===n)eq+=`<span class="arrow">→</span>`;else if(k)eq+=`<span class="plus">+</span>`;
+  eq+=`<span class="sp"><span class="stp"><button data-a="cup" data-v="${k}">▲</button><b>${BAL.c[k]}</b><button data-a="cdn" data-v="${k}">▼</button></span><span class="f">${fm(id)}</span></span>`});
+ let tb='';
+ if(BAL.tally){const[L,R]=tallyOf(r,BAL.c),els=Object.keys(Object.assign({},L,R));
+  tb=`<table class="tally"><tr><th></th>${els.map(e=>`<th>${e}</th>`).join('')}</tr><tr><th>左</th>${els.map(e=>`<td class="${L[e]===R[e]?'y':'n'}">${L[e]||0}</td>`).join('')}</tr><tr><th>右</th>${els.map(e=>`<td class="${L[e]===R[e]?'y':'n'}">${R[e]||0}</td>`).join('')}</tr></table>`}
+ modal(`<h3>配平：${r[4].map(([i])=>nm(i)).join('、')}</h3><div class="small">${OPN[r[2]][1]} ${OPN[r[2]][0]}${CATALYST[r[0]]?'（'+CATALYST[r[0]]+'）':''}　·　調整係數，讓兩邊每種原子一樣多，而且是最簡整數比。</div>
+ <div class="bal">${eq}</div>${tb}<div id="bmsg">${BAL.msg}</div>
+ <button class="btn gold" data-a="bcheck">檢查</button><div class="row"><button class="btn" style="flex:1" data-a="btally">${BAL.tally?'隱藏原子計數':'💡 打開原子計數'}</button><button class="btn ghost" style="flex:1" data-a="close">先離開</button></div>`);
+}
+function balCheck(){
+ const r=RXM[BAL.id],sp=[...r[3],...r[4]],want=sp.map(x=>x[1]);
+ const[L,R]=tallyOf(r,BAL.c),els=Object.keys(Object.assign({},L,R)),off=els.filter(e=>L[e]!==R[e]);
+ const g=BAL.c.reduce(gcd);
+ if(!off.length&&g===1&&BAL.c.every((c,k)=>c===want[k])){
+  const first=BAL.tries===0;save.solved[r[0]]=1;save.rep+=first?5:3;pushEv({k:'solve',r:r[0]});persist();
+  toast(first?'一次就配平！聲望 +5':'配平成功！聲望 +3');
+  openCraft(r[0],1,`<div class="ex"><span class="ok">✓ 配平了！</span> ${r[6]}</div>`);return}
+ BAL.tries++;save.miss++;
+ if(!off.length&&g>1)BAL.msg=`<div class="ex">原子都守恆了！但係數還能同除以 ${g}——要用<b>最簡整數比</b>。</div>`;
+ else if(!off.length)BAL.msg=`<div class="ex">原子守恆了，但這不是這個反應實際的比例。</div>`;
+ else{BAL.tally=true;BAL.msg=`<div class="ex"><span class="bad">還沒平衡：</span>${off.map(e=>`${e} 左邊 ${L[e]||0}、右邊 ${R[e]||0}`).join('；')}。${BAL.tries>=3?'<br>小技巧：先配只出現在兩種物質裡的元素，O 和 H 留到最後。':''}</div>`}
+ persist();drawBal();
+}
+function openCraft(id,q,pre=''){
+ const r=RXM[id],m=maxRuns(r);q=Math.max(1,Math.min(q,Math.max(1,m)));
+ const line=(L,sign)=>L.map(([i,c])=>`${nm(i)} ${sign}${c*q}`).join('　');
+ modal(`${pre}<h3>${OPN[r[2]][1]} ${r[4].map(([i])=>nm(i)).join('、')}</h3><div class="eq">${eqText(r)}</div>${CATALYST[r[0]]?`<div class="small">催化：${CATALYST[r[0]]}</div>`:''}
+ <div class="small">${r[6]}</div>
+ ${m?`<div class="qty"><button data-a="cq" data-v="${q-1}">−</button><b>${q}</b><button data-a="cq" data-v="${q+1}">＋</button><button class="btn" style="width:auto;margin:0;padding:6px 10px;font-size:13px" data-a="cq" data-v="${m}">最大 ${m}</button></div>
+ <div class="ex">消耗：${line(r[3],'−')}<br>得到：${line(r[4],'＋')}</div><button class="btn gold" data-a="craft" data-v="${q}">開始反應 ×${q}</button>`
+ :`<div class="ex">材料不夠：${r[3].map(([i,c])=>`${nm(i)} ${inv(i)}/${c}`).join('、')}</div>`}
+ <button class="btn ghost" data-a="close">關閉</button>`);
+ CRAFT=id;
+}
+let CRAFT=null;
+function craft(q){
+ const r=RXM[CRAFT];if(maxRuns(r)<q)return;
+ r[3].forEach(([i,c])=>addInv(i,-c*q));r[4].forEach(([i,c])=>addInv(i,c*q));
+ const first=!save.made[r[0]];save.made[r[0]]=(save.made[r[0]]||0)+q;if(first)save.rep+=2;persist();
+ toast(`${OPN[r[2]][1]} 得到 ${r[4].map(([i,c])=>nm(i)+'×'+c*q).join('、')}`);
+ openCraft(CRAFT,1);
+}
+function openItem(id){
+ const it=IT[id];const uses=RX.filter(r=>chOpen(r[1])&&r[3].some(([x])=>x===id));const need=BD.filter(b=>chOpen(b[1])&&b[4][id]&&!bDone(b[0]));
+ modal(`<h3><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${it[2]};border:1px solid #0002"></span> ${it[0]} <span class="small">${fm(id)}</span></h3>
+ <div class="muted">${it[3]}</div><div class="small" style="margin-top:6px">倉庫：${inv(id)}${isRaw(id)?`　·　採集地：${SRC[it[4]]}`:''}</div>
+ ${need.length?`<div class="small">鎮上需要：${need.map(b=>b[2]+b[3]).join('、')}</div>`:''}
+ ${uses.length?`<div class="small">可用於：${uses.slice(0,4).map(r=>r[4].map(([x])=>nm(x)).join('、')).join('；')}</div>`:''}
+ ${inv(id)?`<div class="sec" style="margin-top:12px">寄給${paN()}</div><div class="qty"><button data-a="gq" data-v="-1">−</button><b id="gn">1</b><button data-a="gq" data-v="1">＋</button></div><button class="btn gold" data-a="gift" data-v="${id}">📦 寄出</button>`:''}
+ <button class="btn ghost" data-a="close">關閉</button>`);
+}
+
+// ---- 採集 ----
+let REG=null,GQ=null;
+function vGather(){
+ const home=HOME[ME()];if(!REG)REG=home;
+ let h=`<div class="sec">去哪裡採集？</div><div class="regions">${['n','s'].map(r=>`<div class="region ${REG===r?'on':''}" data-a="reg" data-v="${r}"><div class="ic">${r==='n'?'⛰️':'🏖️'}</div><b>${SRC[r]}</b><div class="h">${r===home?'你的工房在這裡：收穫加倍':`${paN()}的地盤：收穫減半`}</div></div>`).join('')}</div>`;
+ h+=`<div class="sec">要採什麼？<small>回答一題普化，答對收穫比較多</small></div><div class="gl">`;
+ Object.keys(IT).filter(i=>IT[i][4]===REG||IT[i][4]==='b').forEach(i=>{h+=`<button class="g" data-a="gat" data-v="${i}"><b>${nm(i)}</b> <span class="small">${fm(i)}</span><small>倉庫 ${inv(i)}</small></button>`});
+ h+=`</div><div class="small" style="margin-top:10px">採集問答 ${save.qst[0]+save.qst[1]} 題 · 答對率 ${save.qst[0]+save.qst[1]?Math.round(save.qst[0]/(save.qst[0]+save.qst[1])*100):0}%${save.qwrong.length?` · 錯題 ${save.qwrong.length} 題會再出現`:''}</div>`;
+ return h;
+}
+function pickQ(){
+ if(save.qwrong.length&&Math.random()<.35)return save.qwrong[Math.floor(Math.random()*save.qwrong.length)];
+ let c=[...QB.keys()].filter(i=>!save.qrecent.includes(i));return c[Math.floor(Math.random()*c.length)];
+}
+function gather(id){
+ const qi=pickQ(),q=QB[qi];GQ={id,qi,opts:shuffle(q[1])};
+ const reg=IT[id][4],home=reg==='b'||reg===HOME[ME()];
+ modal(`<div class="small">${home?'⛏️':'🧭'} 採集 ${nm(id)}　·　<span class="pill">${q[3]}</span></div><div class="dq">${q[0]}</div>${GQ.opts.map((o,k)=>`<button class="opt" data-a="gans" data-v="${k}">${o}</button>`).join('')}<div id="qfb"></div>`);
+}
+function gAns(k,btn){
+ const q=QB[GQ.qi],ok=GQ.opts[k]===q[1][0],reg=IT[GQ.id][4],home=reg==='b'||reg===HOME[ME()];
+ document.querySelectorAll('.opt').forEach((x,j)=>{x.disabled=true;if(GQ.opts[j]===q[1][0])x.classList.add('right')});if(!ok)btn.classList.add('wrong');
+ const n=ok?(home?4:2):(home?2:1);addInv(GQ.id,n);save.qst[ok?0:1]++;if(ok)save.rep+=1;
+ save.qrecent.push(GQ.qi);save.qrecent=save.qrecent.slice(-25);
+ if(ok)save.qwrong=save.qwrong.filter(x=>x!==GQ.qi);else if(!save.qwrong.includes(GQ.qi))save.qwrong.push(GQ.qi);
+ persist();
+ $('qfb').innerHTML=`<div class="ex">${ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${q[2]}</div><div class="ok" style="text-align:center">得到 ${nm(GQ.id)} ×${n}${home?'':'（不是你的地盤，收穫減半）'}</div><div class="row"><button class="btn gold" style="flex:1" data-a="gat" data-v="${GQ.id}">再採一次</button><button class="btn" style="flex:1" data-a="close">回去</button></div>`;
+ bind($('qfb'));
+}
+
+// ---- 每日告示（兩人同一題，按日期決定） ----
+function seedRng(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}let a=h>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const fmt=x=>String(Number((+x).toPrecision(4)));
+function opts4(ans,cands,r){const s=[fmt(ans)];for(const c of cands){const f=fmt(c);if(c>0&&isFinite(c)&&+f>0&&!s.includes(f))s.push(f);if(s.length===4)break}
+ const mult=[2,.5,10,.1,3,1.5,4,.25];let k=0;while(s.length<4&&k<mult.length){const f=fmt(ans*mult[k++]);if(!s.includes(f))s.push(f)}return s}
+const pick=(a,r)=>a[Math.floor(r()*a.length)];
+const GEN=[
+ r=>{const[A,MA,B,MB,a,b]=pick([['CaCO₃',100,'CaO',56,1,1],['NaHCO₃',84,'CO₂',44,2,1],['KClO₃',122.5,'O₂',32,2,3]],r);
+  const mol=pick([.5,1,1.5,2,3],r),m=MA*mol,ans=mol*b/a*MB;
+  const eqs={'CaCO₃':'CaCO₃ → CaO + CO₂','NaHCO₃':'2NaHCO₃ → Na₂CO₃ + H₂O + CO₂','KClO₃':'2KClO₃ → 2KCl + 3O₂','Cu₂(OH)₂CO₃':'Cu₂(OH)₂CO₃ → 2CuO + H₂O + CO₂'};
+  return{t:'化學計量',q:`${eqs[A]}<br>加熱 ${fmt(m)} g ${A}（M = ${MA}）使其完全分解，可得幾克 ${B}（M = ${MB}）？`,o:opts4(ans,[mol*MB,mol*a/b*MB,ans*2],r),u:'g',ex:`${fmt(m)} ÷ ${MA} = ${fmt(mol)} mol ${A}；係數比 ${a} : ${b} → ${fmt(mol*b/a)} mol ${B}；× ${MB} = ${fmt(ans)} g。`}},
+ r=>{if(r()<.5){const a=pick([1,2,3,4,5,6],r),b=pick([1,2,3,4],r),ans=Math.min(a,2*b);
+   return{t:'限量試劑',q:`2H₂ + O₂ → 2H₂O<br>${a} mol H₂ 和 ${b} mol O₂ 反應，最多生成幾 mol H₂O？`,o:opts4(ans,[Math.max(a,2*b),a+b,b,Math.min(a,b)],r),u:'mol',ex:`${a} mol H₂ 需要 ${fmt(a/2)} mol O₂。${a<=2*b?`O₂ 夠用，H₂ 是限量試劑 → ${a} mol H₂O。`:`O₂ 只有 ${b} mol，是限量試劑 → ${2*b} mol H₂O。`}`}}
+  const a=pick([1,2,3,4],r),b=pick([3,6,9,12],r),ans=Math.min(2*a,2*b/3);
+  return{t:'限量試劑',q:`N₂ + 3H₂ ⇌ 2NH₃（假設完全反應）<br>${a} mol N₂ 和 ${b} mol H₂，最多生成幾 mol NH₃？`,o:opts4(ans,[Math.max(2*a,2*b/3),a+b,2*a+2*b/3,b/3],r),u:'mol',ex:`N₂ 可生成 ${2*a} mol，H₂ 可生成 ${fmt(2*b/3)} mol，取小的：${fmt(ans)} mol。`}},
+ r=>{const k=pick([1,2,3,4,5],r);if(r()<.5)return{t:'pH',q:`25 °C 時，1×10⁻${k} M HCl 溶液的 pH？`,o:opts4(k,[14-k,k+1,k-1||k+2],r),u:'',ex:`強酸完全解離，[H⁺] = 10⁻${k}，pH = ${k}。`};
+  return{t:'pH',q:`25 °C 時，1×10⁻${k} M NaOH 溶液的 pH？`,o:opts4(14-k,[k,13-k,15-k],r),u:'',ex:`[OH⁻] = 10⁻${k}，pOH = ${k}，pH = 14 − ${k} = ${14-k}。`}},
+ r=>{const M1=pick([1,2,3,6],r),V1=pick([25,50,100],r),V2=pick([200,250,500],r),ans=M1*V1/V2;
+  return{t:'稀釋',q:`取 ${V1} mL 的 ${M1} M H₂SO₄，加水稀釋到 ${V2} mL，濃度變為多少 M？`,o:opts4(ans,[M1*V2/V1,ans*10,M1*V1/(V2+V1)],r),u:'M',ex:`M₁V₁ = M₂V₂：${M1} × ${V1} = M₂ × ${V2}，M₂ = ${fmt(ans)} M。`}},
+ r=>{const[g,M]=pick([['O₂',32],['CO₂',44],['N₂',28],['CH₄',16],['NH₃',17]],r),n=pick([.5,1,1.5,2,2.5],r),m=n*M,ans=22.4*n;
+  return{t:'氣體',q:`0 °C、1 atm 下，${fmt(m)} g 的 ${g}（M = ${M}）體積約為多少 L？`,o:opts4(ans,[24.5*n,22.4*m,22.4/n],r),u:'L',ex:`${fmt(m)} ÷ ${M} = ${fmt(n)} mol；STP 下每莫耳 22.4 L → ${fmt(ans)} L。`}},
+ r=>{const[f,e,v]=pick(OXN,r);const s=x=>(x>0?'+':'')+x;const c=shuffle([-4,-3,-2,-1,0,1,2,3,4,5,6,7].filter(x=>x!==v),r).sort((a,b)=>Math.abs(a-v)-Math.abs(b-v)).slice(0,3);
+  return{t:'氧化數',q:`${fsub(f)} 中 ${e} 的氧化數？`,o:[s(v),...c.map(s)],u:'',ex:`一般 O 為 −2、H 為 +1、鹼金屬為 +1（過氧化物、金屬氫化物例外），總和為 0。${fsub(f)} 中 ${e} = ${s(v)}。`}},
+ r=>{const pool=RX.filter(x=>[...x[3],...x[4]].length>=3&&[...x[3],...x[4]].some(y=>y[1]>=3));const x=pick(pool,r),sp=[...x[3],...x[4]];const t=pick(sp.filter(y=>y[1]>=2),r);
+  const c=shuffle([1,2,3,4,5,6,8,10].filter(v=>v!==t[1]),r).slice(0,3);
+  return{t:'配平',q:`配平（最簡整數比）後，${fm(t[0])} 的係數是？<br><span style="font-size:14px">${x[3].map(([i])=>fm(i)).join(' + ')} → ${x[4].map(([i])=>fm(i)).join(' + ')}</span>`,o:[String(t[1]),...c.map(String)],u:'',ex:`${eqText(x,true,true)}`}},
+ r=>{const x=pick([2,4,8,10,20],r),V=pick([100,250,500,1000],r),ans=(x/40)/(V/1000);
+  return{t:'濃度',q:`把 ${x} g NaOH（M = 40）溶成 ${V} mL 溶液，體積莫耳濃度？`,o:opts4(ans,[x/V,(x/40)/V,ans*40],r),u:'M',ex:`${x} ÷ 40 = ${fmt(x/40)} mol；÷ ${V/1000} L = ${fmt(ans)} M。`}},
+];
+function dailyQs(d){const r=seedRng(d+'#balance');const types=shuffle([...GEN.keys()],r).slice(0,3);return types.map(t=>{const g=GEN[t](r);const right=g.o[0];g.o=shuffle(g.o,r);g.a=g.o.indexOf(right);return g})}
+let DQ=null;
+function vDaily(){
+ const d=todayStr(),qs=dailyQs(d),mine=save.daily&&save.daily.d===d?save.daily:null,his=P&&P.daily&&P.daily.d===d?P.daily:null;
+ let h=`<div class="sec">鎮公所告示<small>${d.slice(5).replace('-','/')}</small></div><div class="small" style="margin:-4px 2px 8px">每天三題，${meN()}和${paN()}的題目一模一樣。</div>`;
+ if(!mine||mine.ans.length<3){
+  const k=mine?mine.ans.length:0,g=qs[k];
+  h+=`<div class="card"><div class="small">第 ${k+1}/3 題　<span class="pill">${g.t}</span></div><div class="dq">${g.q}</div>${g.o.map((o,j)=>`<button class="opt" data-a="dans" data-v="${j}">${o} ${g.u}</button>`).join('')}<div id="qfb"></div></div>`;
+  h+=`<div class="small">${his?`${paN()}今天已經做完了（做完才看得到${paN()}的答案）`:`${paN()}今天還沒做`}</div>`;
+ } else {
+  const sc=mine.ok.filter(Boolean).length,hs=his?his.ok.filter(Boolean).length:null;
+  h+=`<div class="vs"><div class="p me">${meN()}<b>${sc}/3</b></div><div class="p her">${paN()}<b>${hs===null?'…':hs+'/3'}</b></div></div>`;
+  qs.forEach((g,k)=>{h+=`<div class="card"><div class="small">第 ${k+1} 題　<span class="pill">${g.t}</span></div><div class="dq">${g.q}</div>
+   <div>正解：<b>${g.o[g.a]} ${g.u}</b></div><div class="small">${meN()}：${mine.ok[k]?'✓':'✗ '+g.o[mine.ans[k]]}${his?`　·　${paN()}：${his.ok[k]?'✓':'✗ '+g.o[his.ans[k]]}`:''}</div><div class="ex">${g.ex}</div></div>`});
+  if(!his)h+=`<div class="small">${paN()}做完後，這裡會顯示${paN()}每一題的答案。</div>`;
+ }
+ // 戰績
+ const days=[...Array(7)].map((_,i)=>todayStr(6-i));
+ const ph=P?P.dhist:{};
+ h+=`<div class="sec">這週戰績</div><div class="card"><table class="hist" style="width:100%"><tr><td></td>${days.map(x=>`<td class="small">${x.slice(5).replace('-','/')}</td>`).join('')}</tr>
+  <tr><td class="who-me">${meN()}</td>${days.map(x=>`<td>${save.dhist[x]??'·'}</td>`).join('')}</tr><tr><td class="who-her">${paN()}</td>${days.map(x=>`<td>${ph[x]??'·'}</td>`).join('')}</tr></table>
+  <div class="small" style="text-align:center;margin-top:4px">本週合計　${meN()} ${days.reduce((s,x)=>s+(save.dhist[x]||0),0)}　：　${days.reduce((s,x)=>s+(ph[x]||0),0)} ${paN()}</div></div>`;
+ return h;
+}
+function dAns(j,btn){
+ const d=todayStr(),qs=dailyQs(d);if(!save.daily||save.daily.d!==d)save.daily={d,ans:[],ok:[]};
+ const k=save.daily.ans.length;if(k>=3)return;const g=qs[k],ok=j===g.a;
+ save.daily.ans.push(j);save.daily.ok.push(ok);if(ok)save.rep+=5;
+ document.querySelectorAll('.opt').forEach((x,i)=>{x.disabled=true;if(i===g.a)x.classList.add('right')});if(!ok)btn.classList.add('wrong');
+ const done=save.daily.ans.length===3;
+ if(done){const s=save.daily.ok.filter(Boolean).length;save.dhist[d]=s;pushEv({k:'daily',s});if(s===3){save.rep+=5}}
+ persist();
+ $('qfb').innerHTML=`<div class="ex">${ok?'<span class="ok">✓ 正確</span>':'<span class="bad">✗ 錯了</span>'}　${g.ex}</div><button class="btn gold" data-a="dnext">${done?'看今天的結果':'下一題'}</button>`;bind($('qfb'));
+ if(done&&save.daily.ok.every(Boolean))confetti();
+}
+
+// ---- 筆記 ----
+let resetArm=false;
+function vBook(){
+ let h=`<div class="sec">原理卡<small>${Object.keys(save.quiz).length}/${BD.length}</small></div>`;
+ const cs=BD.filter(b=>save.quiz[b[0]]);
+ h+=cs.length?cs.map(b=>`<div class="card cardk"><h3>📘 ${b[7][0]}</h3><div class="small">${b[2]} ${b[3]}　·　${b[7][1]}</div></div>`).join(''):`<div class="muted">建築落成後，回答委託人的「為什麼」就能拿到原理卡。</div>`;
+ const sol=RX.filter(r=>save.solved[r[0]]);
+ h+=`<div class="sec">配平過的方程式<small>${sol.length}/${RX.length}</small></div>`;
+ h+=sol.map(r=>`<div class="card"><span class="pill">${r[5]}</span><div class="eq">${eqText(r)}</div><div class="small">${r[6]}</div></div>`).join('')||'<div class="muted">還沒有。</div>';
+ h+=`<div class="sec">統計</div><div class="card small">採集問答：答對 ${save.qst[0]}、答錯 ${save.qst[1]}<br>配平失誤：${save.miss} 次<br>${P?`${paN()}：聲望 ${P.rep} · 配平 ${P.solved} 條 · 原理卡 ${P.cards} 張`:''}</div>`;
+ return h;
+}
+
+// ===================== 事件綁定 =====================
+function modal(h){const m=$('modal');m.innerHTML=`<div class="mbox">${h}</div>`;m.classList.add('show');bind(m)}
+function closeM(){$('modal').classList.remove('show');$('modal').innerHTML='';render()}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeM()});
+let GN=1;
+function bind(root=document){
+ root.querySelectorAll('[data-a]').forEach(el=>{if(el._b)return;el._b=1;el.onclick=ev=>{ev.stopPropagation();act(el.dataset.a,el.dataset.v,el)}});
+}
+function act(a,v,el){
+ switch(a){
+  case'close':return closeM();
+  case'bld':return openBld(v);
+  case'donate':return donate(v,el.dataset.i);
+  case'bquiz':return bQuiz(v);
+  case'bqa':return bQuizAns(v,el.dataset.o,el);
+  case'rx':return openRx(v);
+  case'cup':BAL.c[+v]=Math.min(20,BAL.c[+v]+1);return drawBal();
+  case'cdn':BAL.c[+v]=Math.max(1,BAL.c[+v]-1);return drawBal();
+  case'btally':BAL.tally=!BAL.tally;return drawBal();
+  case'bcheck':return balCheck();
+  case'cq':return openCraft(CRAFT,+v);
+  case'craft':return craft(+v);
+  case'item':GN=1;return openItem(v);
+  case'gq':GN=Math.max(1,Math.min(inv(document.querySelector('[data-a=gift]').dataset.v),GN+ +v));$('gn').textContent=GN;return;
+  case'gift':sendGift(v,GN);GN=1;return closeM();
+  case'reg':REG=v;return render();
+  case'gat':return gather(v);
+  case'gans':return gAns(+v,el);
+  case'dans':return dAns(+v,el);
+  case'dnext':return render();
+  case'reset':if(!resetArm){resetArm=true;render();setTimeout(()=>{resetArm=false;if(TAB==='book')render()},3000);return}
+   resetArm=false;save=defSave();save.intro=true;save.svt=Date.now();_persist();pushMine();toast('已重置');return render();
+ }
+}
+
+// ===================== 開場 =====================
+function prologue(){
+ if(save.intro)return;
+ const n=HOME[ME()]==='n';
+ modal(`<h3>召喚</h3><p>期末考前一晚，實驗室的燒杯發出不屬於任何元素的光——</p>
+ <p>醒來時，你在一座陌生大陸的${n?'<b>北方礦山</b>':'<b>南方海岸</b>'}。村民說，那天夜裡被召喚來的不只你一個：還有一個人落在${n?'南方海岸':'北方礦山'}，名字叫<b>${paN()}</b>。</p>
+ <p>這裡沒有魔法。他們口中的「白火粉」「龍息」「冥火石」，全是你課本裡的化學。只是這個世界還沒有人會<b>配平</b>。</p>
+ <div class="ex">🏘️ 城鎮：你和${paN()}一起把材料送去蓋房子，誰出了多少都刻在銘牌上。<br>⚗️ 工房：第一次做某個反應要先配平，之後就能照比例量產。<br>⛏️ 採集：答一題普化換原料。${n?'北方':'南方'}是你的地盤；另一邊的東西，可以等${paN()}寄過來。<br>📜 告示：每天三題，兩人同一題，比比看。</div>
+ <button class="btn gold" data-a="start">開始</button>`);
+ $('modal').querySelector('[data-a=start]').onclick=()=>{save.intro=true;persist();closeM()};
+}
+// 隱藏開關：連點標題 5 下切換身分（測試用）
+let tapN=0,tapT=0;
+$('title').onclick=()=>{const t=Date.now();tapN=t-tapT<700?tapN+1:1;tapT=t;if(tapN>=5){tapN=0;
+ modal(`<h3>👀 切換視角</h3><div class="muted">目前是：<b>${meN()}</b>。兩個視角的存檔分開保存。</div><button class="btn" data-a="role" data-v="j">傑（北方礦山）</button><button class="btn" data-a="role" data-v="her">彣（南方海岸）</button><button class="btn ghost" data-a="close">取消</button>`);
+ $('modal').querySelectorAll('[data-a=role]').forEach(b=>b.onclick=()=>{save.lastVisit=Date.now();_persist();pushMine();try{localStorage.setItem('mb_role',b.dataset.v)}catch(e){}location.reload()})}};
+
+// ===================== 啟動 =====================
+save.prevVisit=save.lastVisit||0;save.lastVisit=Date.now();_persist();
+render();prologue();
+setTimeout(initSync,0);
+</script>
+</body>
+</html>
