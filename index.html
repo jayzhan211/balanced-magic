@@ -170,6 +170,7 @@ table.tally td.n{color:var(--bad);font-weight:700}
 <script>window.__FB_CONFIG={ "apiKey": "AIzaSyB23R-w82cFQbcWzJERVaL7c1DTonpCdlU", "authDomain": "balanced-magic.firebaseapp.com", "projectId": "balanced-magic", "storageBucket": "balanced-magic.firebasestorage.app", "messagingSenderId": "493178778518", "appId": "1:493178778518:web:0f329d8250cc6b6d15e3b7" };</script>
 <script>
 const PAIR='7NagGHeso22QC5bBCStwkiGO';
+const APPV='89b29f13';
 // @@DATA_START
 // ===================== 物質 =====================
 // id: [名稱, 化學式, 顏色, 說明, 採集地(n 北方礦山 / s 南方海岸 / b 兩地皆有 / 空=只能合成)]
@@ -1162,7 +1163,7 @@ const meN=()=>NM[ME()], paN=()=>NM[PA()];
 const KEY=()=>(TEST?'mb_test_':'mb_save_')+ROLE;
 // 存檔世代：換世代＝全部重新開始（舊的雲端資料、這台裝置上的正式進度都不再讀取）
 const EPOCH='2026-11-14-start';
-try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
+try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her','mb_prever_j','mb_prever_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
 function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
@@ -1200,7 +1201,7 @@ function clean(){
  for(const k in save.solved)if(!RXM[k])delete save.solved[k];
  for(const b in save.don){if(!BDM[b]){delete save.don[b];continue}for(const i in save.don[b])if(!IT[i])delete save.don[b][i]}
 }
-try{const b=JSON.parse(localStorage.getItem(BKEY())||'null');if(b&&b.v&&activity(b)>activity(save))save=mergeSaves(save,b)}catch(e){}
+for(const k of [BKEY(),(TEST?'mb_testprever_':'mb_prever_')+ROLE]){try{const b=JSON.parse(localStorage.getItem(k)||'null');if(b&&b.v&&activity(b)>activity(save))save=mergeSaves(save,b)}catch(e){}}
 clean();
 function _persist(){try{const j=JSON.stringify(save);localStorage.setItem(KEY(),j);
  // 本機保險：另存一份「最多進度」的備份，正式存檔就算被蓋掉也找得回來
@@ -1266,6 +1267,16 @@ async function backupCloud(sv){
  const a=activity(save);if(a<=SY.bakA||a===0)return;
  try{await BAK().set({['d'+new Date().getDay()]:{sv,t:Date.now(),a,ep:EPOCH}},{merge:true});SY.bakA=a}catch(e){console.warn('bak',e)}
 }
+// 版本更新備份：每次遊戲更新後第一次打開，先把更新前的進度另存一份（本機＋雲端，雲端保留最近 3 次更新）
+async function verBackup(){
+ if(TEST&&!TCLOUD)return;const vk='mb_ver_'+(TCLOUD?'t':'')+ROLE;let old=null;try{old=localStorage.getItem(vk)}catch(e){}
+ if(old===APPV)return;
+ if(old&&activity(save)>0){const sv=JSON.stringify(save);
+  try{localStorage.setItem((TEST?'mb_testprever_':'mb_prever_')+ROLE,sv)}catch(e){}
+  try{const n=+(localStorage.getItem(vk+'_n')||0);await BAK().set({['u'+(n%3)]:{sv,t:Date.now(),a:activity(save),ep:EPOCH,from:old,to:APPV}},{merge:true});localStorage.setItem(vk+'_n',String(n+1))}catch(e){console.warn('verbak',e);return}
+ }
+ try{localStorage.setItem(vk,APPV)}catch(e){}
+}
 async function restore(){
  try{const snap=await SY.db.doc(`balance/${DOCP()}/players/${ME()}`).get({source:'server'});
   if(snap.exists)adoptCloud(snap.data());SY.ready=true;
@@ -1291,7 +1302,7 @@ async function initSync(){
   if(isJUser(u)&&ROLE!=='j'&&!TCLOUD){try{localStorage.setItem('mb_role','j')}catch(e){}location.reload();return}
   SY.needLogin=ROLE==='j'&&!isJUser(u)&&!TCLOUD;
   SY.db=firebase.firestore();
-  await restore();SY.on=true;
+  await restore();if(SY.ready)await verBackup();SY.on=true;
   SY.db.doc(`balance/${DOCP()}/players/${ME()}`).onSnapshot(x=>{if(x.metadata&&x.metadata.hasPendingWrites)return;if(!(x.metadata&&x.metadata.fromCache))SY.ready=true;SY.myCloud=x.exists?x.data():null;if(SY.myCloud)adoptCloud(SY.myCloud)},e=>console.warn('self',e));
   SY.db.doc(`balance/${DOCP()}/players/${PA()}`).onSnapshot(s=>{SY.pAt=Date.now();onPartner(s.exists?s.data():null)},e=>{console.warn('sync',e);setSt('err',e&&e.message||e)});
   pushMine();render();
@@ -1904,7 +1915,22 @@ function openHelp(){
 function syncPanel(){const L={off:'📴 單機模式：沒有連上雲端（網路或 Firebase 沒載入），進度只存在這台裝置。',conn:'⏳ 正在連線……',ok:'☁️ 已同步。同步是自動的：每次有進度約 2 秒後上傳，對方的進度會即時傳過來。',push:'⏳ 有新進度，正在上傳……',err:'⚠️ 上傳失敗，會自動每 20 秒重試，網路恢復時也會自動補傳。'};
  modal(`<h3>同步狀態</h3><div class="ex">${L[SY.st]||L.off}${SY.st==='err'?`<br><span class="small">${esc(SY.err)}</span>`:''}</div>
  <div class="small">${SY.okAt?`上次成功上傳：${ago(SY.okAt)}`:'還沒上傳過'}<br>${P?`${paN()}最後一次存檔：${P.ts?ago(P.ts):'—'}`:`還沒收到${paN()}的資料（${paN()}可能還沒開過遊戲）`}${TEST?`<br>🧪 測試模式：${TCLOUD?'連著「雲端測試空間」，不會碰到真實存檔':'單機，不連雲端'}`:''}</div>
- ${SY.on?'<button class="btn" data-a="syncnow">立刻上傳一次</button>':''}<button class="btn ghost" data-a="close">關閉</button>`)}
+ ${SY.on?'<button class="btn" data-a="syncnow">立刻上傳一次</button>':''}
+ <div class="sec">📦 手動備份</div><div class="small">雲端已經會自動備份。想多一份保險，可以把進度複製起來存到備忘錄；匯入只會「合併」，不會蓋掉現有進度。</div>
+ <button class="btn" data-a="bkexp">📦 匯出進度</button><button class="btn" data-a="bkimp">📥 匯入備份（合併）</button>
+ <div class="small" style="text-align:center;opacity:.6">版本 ${APPV}</div>
+ <button class="btn ghost" data-a="close">關閉</button>`)}
+function bkExport(){const t=JSON.stringify(save);
+ modal(`<h3>📦 匯出進度</h3><div class="small">下面這串就是${meN()}的完整進度。按「複製」後貼到備忘錄或傳給自己存著。</div>
+ <textarea id="bktx" readonly style="width:100%;height:120px;font-size:11px">${esc(t)}</textarea>
+ <button class="btn gold" id="bkcp">複製</button><button class="btn ghost" data-a="close">關閉</button>`);
+ $('bkcp').onclick=async()=>{const x=$('bktx');try{await navigator.clipboard.writeText(t);toast('已複製')}catch(e){x.select();document.execCommand('copy');toast('已複製')}}}
+function bkImport(){
+ modal(`<h3>📥 匯入備份</h3><div class="small">貼上之前匯出的那一串。會跟現在的進度<b>合併</b>（只會變多），不會蓋掉。</div>
+ <textarea id="bkin" style="width:100%;height:120px;font-size:11px"></textarea>
+ <button class="btn gold" id="bkgo">合併進來</button><button class="btn ghost" data-a="close">取消</button>`);
+ $('bkgo').onclick=()=>{let c;try{c=JSON.parse($('bkin').value.trim())}catch(e){return toast('格式不對，請整串貼上')}
+  if(!c||!c.v)return toast('這不是遊戲的備份');const a0=activity(save);save=mergeSaves(save,c);clean();persist();closeM();toast(activity(save)>a0?'📥 已合併備份':'📥 備份裡沒有比現在更多的進度')}}
 
 // ===================== 🧪 測試模式（獨立存檔、不同步雲端） =====================
 function dbgPanel(){
@@ -1965,6 +1991,8 @@ function act(a,v,el){
   case'lvnext':closeM();return setTimeout(showLvQ,200);
   case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
+  case'bkexp':return bkExport();
+  case'bkimp':return bkImport();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
   case'nbadd':return nbAdd();
   case'flag':return flagQ();

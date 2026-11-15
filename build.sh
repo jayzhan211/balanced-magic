@@ -3,6 +3,8 @@
 set -e
 cd "$(dirname "$0")"
 PAIR=$(cat src/pair.txt)
+# 版本號：程式內容一變就換，用來在更新時自動備份進度
+APPV=$(cat src/*.js src/head.html | sha1sum | cut -c1-8)
 {
 cat src/head.html
 cat <<HTML
@@ -12,6 +14,7 @@ cat <<HTML
 <script>window.__FB_CONFIG=$(cat src/firebase-config.json);</script>
 <script>
 const PAIR='$PAIR';
+const APPV='$APPV';
 // @@DATA_START
 HTML
 cat src/data.js
