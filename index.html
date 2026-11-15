@@ -170,7 +170,7 @@ table.tally td.n{color:var(--bad);font-weight:700}
 <script>window.__FB_CONFIG={ "apiKey": "AIzaSyB23R-w82cFQbcWzJERVaL7c1DTonpCdlU", "authDomain": "balanced-magic.firebaseapp.com", "projectId": "balanced-magic", "storageBucket": "balanced-magic.firebasestorage.app", "messagingSenderId": "493178778518", "appId": "1:493178778518:web:0f329d8250cc6b6d15e3b7" };</script>
 <script>
 const PAIR='7NagGHeso22QC5bBCStwkiGO';
-const APPV='d0837ab2';
+const APPV='c715e0df';
 // @@DATA_START
 // ===================== 物質 =====================
 // id: [名稱, 化學式, 顏色, 說明, 採集地(n 北方礦山 / s 南方海岸 / b 兩地皆有 / 空=只能合成)]
@@ -2143,7 +2143,7 @@ function openHelp(){
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
  <div class="sec">每日目標</div>
- <div class="muted">🔍 <b>小鎮事件簿</b>（在「🎓 學院」）：讀症狀和現場，自己選要做哪些實驗，推理出是什麼化學物質。前 3 個實驗免費；沒頭緒可以按提示（會建議該做哪個實驗、再幫你刪掉兩個錯的答案），但會少星。破案後有解說和考點，還可以寫「我的推理」給對方看。</div>
+ <div class="muted">🔍 <b>小鎮事件簿</b>（在「🎓 學院」）：讀症狀和現場，自己選要做哪些實驗，推理出是什麼化學物質。做實驗不花材料（做超過 5 個會少一顆星，鼓勵先想再做）；沒頭緒可以按提示（會建議該做哪個實驗、再幫你刪掉兩個錯的答案），但會少星。破案後有解說和考點，還可以寫「我的推理」給對方看。</div>
  <div class="muted">📖 <b>講堂</b>（在「🎓 學院」）：常錯概念的生活化教學，每章 1～2 分鐘。讀完做小練習，第一次讀完答對的題目算學徒經驗。最後可以寫「我的補充」，對方看得到。答錯題目時也會出現「📖 看懂這個概念」的按鈕。</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
@@ -2401,7 +2401,7 @@ function drawCase(){
   h+=`<div style="line-height:1.75;font-size:14.5px">${c.story}</div>`;
   if(st.done.length)h+=`<div class="sec">🧪 檢驗紀錄</div>`+st.done.map(t=>`<div class="ex"><b>${TESTM[t][1]} ${TESTM[t][2]}</b>：${c.res[t]||TDEF}</div>`).join('');
   const left=CFREE-st.done.length;
-  h+=`<div class="sec">要做哪個實驗？<small>${left>0?`前 ${CFREE} 個免費，還剩 ${left} 個`:'做太多實驗會少一顆星'}</small></div><div class="inv">${TESTS.filter(t=>!st.done.includes(t[0])).map(t=>`<span class="chip" data-t="${t[0]}" title="${t[3]}">${t[1]} ${t[2]}</span>`).join('')}</div>`;
+  h+=`<div class="sec">要做哪個實驗？<small>不花材料，想做幾個都可以${left>-2?'':'（超過 5 個會少一顆星）'}</small></div><div class="inv">${TESTS.filter(t=>!st.done.includes(t[0])).map(t=>`<span class="chip" data-t="${t[0]}" title="${t[3]}">${t[1]} ${t[2]}</span>`).join('')}</div>`;
   if(st.hint>=1)h+=`<div class="ex">💡 提示：先試試 ${c.key.map(k=>`<b>${TESTM[k][1]}${TESTM[k][2]}</b>`).join('、')}。${st.hint>=2?'<br>💡 已經幫你刪掉兩個不可能的答案。':''}</div>`;
   h+=`<div class="row" style="margin-top:10px"><button class="btn" style="flex:1" id="cshint" ${st.hint>=2?'disabled':''}>💡 ${st.hint===0?'沒頭緒？給提示':st.hint===1?'再多一點提示':'提示已用完'}</button><button class="btn gold" style="flex:1" id="csans">🧠 我知道是什麼了</button></div>
   <div class="small" style="text-align:center">目前可得 ${'★'.repeat(caseStars(st))}${'☆'.repeat(3-caseStars(st))}　（用提示、猜錯、實驗做太多都會少星）</div>`;
