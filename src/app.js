@@ -34,7 +34,7 @@ const EPOCH='2026-11-14-start';
 try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her','mb_prever_j','mb_prever_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
-function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},cs:{},cnote:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
 const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
 const J=x=>JSON.parse(JSON.stringify(x));
@@ -58,6 +58,8 @@ function mergeSaves(L,C){
  o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
  o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
  o.ls=uni(L.ls,C.ls);
+ o.cs={};for(const k of new Set([...Object.keys(L.cs||{}),...Object.keys(C.cs||{})])){const x=(L.cs||{})[k],y=(C.cs||{})[k];o.cs[k]=!x?y:!y?x:((y.s||0)>(x.s||0)?y:x)}
+ o.cnote={};for(const k of new Set([...Object.keys(L.cnote||{}),...Object.keys(C.cnote||{})])){const x=(L.cnote||{})[k],y=(C.cnote||{})[k];o.cnote[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
  o.lnote={};for(const k of new Set([...Object.keys(L.lnote||{}),...Object.keys(C.lnote||{})])){const x=(L.lnote||{})[k],y=(C.lnote||{})[k];o.lnote[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
  o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
  const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
@@ -109,13 +111,15 @@ function sanitize(d){
  const fl=(Array.isArray(d.fl)?d.fl:[]).slice(0,60).filter(f=>f&&Array.isArray(f.o)).map(f=>({id:clip(f.id,24),q:clip(f.q,500),o:f.o.slice(0,4).map(x=>clip(x,120)),a:n(f.a,0,3),t:clip(f.t,12),why:clip(f.why,12),note:clip(f.note,120),ts:n(f.ts,0,9e15)}));
  const ls={};if(d.ls&&typeof d.ls==='object')for(const k in d.ls)if(LESM[k])ls[k]=n(d.ls[k],0,9e15);
  const ln={};if(d.ln&&typeof d.ln==='object')for(const k in d.ln){const x=d.ln[k];if(LESM[k]&&x&&typeof x==='object')ln[k]={txt:clip(x.txt,300),ts:n(x.ts,0,9e15)}}
- return{ls,ln,fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+ const cs={};if(d.cs&&typeof d.cs==='object')for(const k in d.cs){const x=d.cs[k];if(CASEM[k]&&x&&typeof x==='object')cs[k]={s:n(x.s,1,3),ts:n(x.ts,0,9e15)}}
+ const cn={};if(d.cn&&typeof d.cn==='object')for(const k in d.cn){const x=d.cn[k];if(CASEM[k]&&x&&typeof x==='object')cn[k]={txt:clip(x.txt,300),ts:n(x.ts,0,9e15)}}
+ return{cs,cn,ls,ln,fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
 }
 function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60),ls:save.ls||{},ln:save.lnote||{}};
+ return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60),ls:save.ls||{},ln:save.lnote||{},cs:save.cs||{},cn:save.cnote||{}};
 }
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
@@ -220,6 +224,7 @@ function evText(e,who,short){
   case'gift':return`寄了 ${it?nm(e.it):'?'}×${e.n} 給${who===ME()?paN():meN()}`;
   case'alv':return`和${who===ME()?paN():meN()}一起把 ${APPM[e.a]?APPM[e.a].ic+APPM[e.a].nm:'?'} 教到了 Lv${e.n}${e.n>=GRAD?'（出師）':''}`;
   case'ask':return`請教了一題${e.u?'（'+e.u+'）':''}`;
+  case'case':return`破了一件小鎮怪事${e.u?'（'+e.u+'）':''}`;
   case'les':return`讀完講堂「${e.u&&U2L[e.u]?LESM[U2L[e.u][0]].t:'一章'}」`;
   case'nb':return`收了一題進筆記本${e.u?'（'+e.u+'）':''}`;
   case'nn':return`在筆記本留了一則筆記`;
@@ -264,6 +269,7 @@ function vTown(){
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0 4px;text-align:center">${NEEDS.map(([k,ic,l])=>`<div><div style="font-size:18px">${ic}</div><div style="height:34px;background:#eadfc6;border-radius:5px;position:relative;overflow:hidden;margin:2px 6px"><i style="position:absolute;left:0;right:0;bottom:0;height:${Math.round(T.sat[k]*100)}%;background:${T.sat[k]>.7?'var(--ok)':T.sat[k]>.35?'var(--gold2)':'var(--bad)'}"></i></div><div class="small">${l}</div></div>`).join('')}</div>
   <div class="small">鎮民心聲：${NEEDMSG[T.low]}${T.fix?`　→ 蓋「${T.fix[2]}${T.fix[3]}」會有幫助${unlocked(T.fix[0])?'':`（要先把 ${APPM[BX[T.fix[0]][0]].ic}${APPM[BX[T.fix[0]][0]].nm} 教到 Lv${BX[T.fix[0]][1]}）`}`:''}</div>
   <div style="margin-top:8px">${goalBar()}</div></div>`;
+ {const u=CASES.filter(c=>!save.cs[c.id]).length;if(u)h+=`<div class="banner" data-a="tab" data-v="acad" style="cursor:pointer">🔍 鎮上還有 ${u} 件怪事等你調查（在「🎓 學院」的事件簿）→</div>`}
  if(P){const since=save.prevVisit||0,ne=P.ev.filter(e=>e.t>since).slice(0,4);
   if(ne.length)h+=`<div class="banner"><b>你不在的時候，${paN()}</b>：<br>${ne.map(e=>'・'+evText(e,PA())).join('<br>')}</div>`;}
  else h+=`<div class="banner small">${SY.on?`等${paN()}第一次來到這個世界……`:`（目前是單機模式：還沒連上${paN()}，進度只存在這台裝置）`}</div>`;
@@ -684,6 +690,7 @@ function apCard(a,big){const l=appLv(a.id),x=appXP(a.id),nx=ALV[l]??null,pv=ALV[
 function vAcademy(){
  let h=roleCard();
  h+=lessonList();
+ h+=caseList();
  h+=`<div class="sec">🎓 學徒們<small>兩個人答對的題目都算經驗，Lv${GRAD} 出師後每天會寄材料回來</small></div>`;
  APP.slice().sort((x,y)=>appXP(y.id)-appXP(x.id)).forEach(a=>h+=apCard(a));
  h+=`<button class="btn" data-a="tab" data-v="book">📘 我的學習紀錄（單元答對率、原理卡、配平過的方程式）</button>`;
@@ -778,6 +785,7 @@ function openHelp(){
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
  <div class="sec">每日目標</div>
+ <div class="muted">🔍 <b>小鎮事件簿</b>（在「🎓 學院」）：讀症狀和現場，自己選要做哪些實驗，推理出是什麼化學物質。前 3 個實驗免費；沒頭緒可以按提示（會建議該做哪個實驗、再幫你刪掉兩個錯的答案），但會少星。破案後有解說和考點，還可以寫「我的推理」給對方看。</div>
  <div class="muted">📖 <b>講堂</b>（在「🎓 學院」）：常錯概念的生活化教學，每章 1～2 分鐘。讀完做小練習，第一次讀完答對的題目算學徒經驗。最後可以寫「我的補充」，對方看得到。答錯題目時也會出現「📖 看懂這個概念」的按鈕。</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
@@ -867,6 +875,7 @@ function act(a,v,el){
   case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
   case'lesson':return openLesson(v);
+  case'case':return openCase(v);
   case'bkexp':return bkExport();
   case'bkimp':return bkImport();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
@@ -1013,4 +1022,59 @@ function finishLesson(){
  save.ls[l.id]=Date.now();const ap=APPM[U2A[l.u]];
  if(LS.ok){const x=save.us[l.u]||[0,0];x[0]+=LS.ok;save.us[l.u]=x;const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+LS.ok]:[td,LS.ok]}
  LS.rw=`🎉 第一次讀完！${LS.ok&&ap?`${ap.ic}${ap.nm} 經驗 +${LS.ok}`:''}`;pushEv({k:'les',u:l.u});persist();checkLv();checkGoal();
+}
+
+// ===================== 🔍 小鎮事件簿 =====================
+function caseList(){
+ const done=CASES.filter(c=>save.cs[c.id]).length,L=CASES.slice().sort((a,b)=>(save.cs[a.id]?1:0)-(save.cs[b.id]?1:0));
+ let h=`<div class="sec" id="casesec">🔍 小鎮事件簿<small>看症狀和現場、自己選實驗，推理出是什麼化學物質（${done}/${CASES.length}）</small></div><div class="card">`;
+ L.forEach((c,i)=>{const m=save.cs[c.id],pc=P&&P.cs&&P.cs[c.id],pn=P&&P.cn&&P.cn[c.id];
+  h+=`<div data-a="case" data-v="${c.id}" style="display:flex;align-items:center;gap:10px;padding:8px 2px;cursor:pointer;${i?'border-top:1px dashed var(--line);':''}">
+   <div style="font-size:24px">${c.ic}</div><div style="flex:1"><div><b>${c.t}</b>${m?` <span style="color:var(--gold)">${'★'.repeat(m.s)}</span>`:''}</div>
+   <div class="small">${m?'已破案':CS[c.id]?'調查中…':'未解決'}${pc?` · ${paN()}破案 ${'★'.repeat(pc.s)}`:''}${pn?` · 💬${paN()}的推理`:''}</div></div><div>›</div></div>`});
+ return h+'</div>';
+}
+const CS={}; // 調查中的狀態（只在這次開啟期間保留）
+function caseStars(st){return Math.max(1,3-st.hint-st.wrong.length-(st.done.length>CFREE+2?1:0))}
+function openCase(id){const c=CASEM[id];if(!c)return;if(!CS[id]||save.cs[id]&&CS[id].stage==='sol')CS[id]={id,done:[],hint:0,wrong:[],stage:save.cs[id]?'sol':'inv',ord:shuffle(c.cand)};CS.cur=id;drawCase()}
+function drawCase(){
+ const st=CS[CS.cur],c=CASEM[st.id],solved=!!save.cs[c.id];let h=`<h3>${c.ic} ${c.t}</h3>`;
+ if(st.stage==='inv'){
+  h+=`<div style="line-height:1.75;font-size:14.5px">${c.story}</div>`;
+  if(st.done.length)h+=`<div class="sec">🧪 檢驗紀錄</div>`+st.done.map(t=>`<div class="ex"><b>${TESTM[t][1]} ${TESTM[t][2]}</b>：${c.res[t]||TDEF}</div>`).join('');
+  const left=CFREE-st.done.length;
+  h+=`<div class="sec">要做哪個實驗？<small>${left>0?`前 ${CFREE} 個免費，還剩 ${left} 個`:'做太多實驗會少一顆星'}</small></div><div class="inv">${TESTS.filter(t=>!st.done.includes(t[0])).map(t=>`<span class="chip" data-t="${t[0]}" title="${t[3]}">${t[1]} ${t[2]}</span>`).join('')}</div>`;
+  if(st.hint>=1)h+=`<div class="ex">💡 提示：先試試 ${c.key.map(k=>`<b>${TESTM[k][1]}${TESTM[k][2]}</b>`).join('、')}。${st.hint>=2?'<br>💡 已經幫你刪掉兩個不可能的答案。':''}</div>`;
+  h+=`<div class="row" style="margin-top:10px"><button class="btn" style="flex:1" id="cshint" ${st.hint>=2?'disabled':''}>💡 ${st.hint===0?'沒頭緒？給提示':st.hint===1?'再多一點提示':'提示已用完'}</button><button class="btn gold" style="flex:1" id="csans">🧠 我知道是什麼了</button></div>
+  <div class="small" style="text-align:center">目前可得 ${'★'.repeat(caseStars(st))}${'☆'.repeat(3-caseStars(st))}　（用提示、猜錯、實驗做太多都會少星）</div>`;
+ }else if(st.stage==='ans'){
+  h+=`<div class="small">${c.story}</div>${st.done.length?`<div class="small" style="margin-top:6px">${st.done.map(t=>`${TESTM[t][1]} ${c.res[t]||TDEF}`).join('<br>')}</div>`:''}<div class="sec">是什麼造成的？</div>`+st.ord.map(o=>{const out=st.wrong.includes(o)||(st.hint>=2&&c.cut.includes(o));return`<button class="opt" data-o="${esc(o)}" ${out?'disabled style="opacity:.4;text-decoration:line-through"':''}>${o}</button>`}).join('')+
+   `<button class="btn ghost" id="csback">← 回去再查查看</button>`;
+ }else{
+  const m=save.cs[c.id],pc=P&&P.cs&&P.cs[c.id],pn=P&&P.cn&&P.cn[c.id],mine=(save.cnote[c.id]||{}).txt||'';
+  h+=`<div class="ex" style="text-align:center"><b>真相：${c.cand[0]}</b><br><span style="color:var(--gold);font-size:18px">${'★'.repeat(m.s)}${'☆'.repeat(3-m.s)}</span>${st.rw?`<br>${st.rw}`:''}</div>
+  <div style="line-height:1.75;font-size:14.5px">${c.exp}</div><div class="ex">📌 考點：${c.pt}</div>
+  ${pc?`<div class="small">${paN()}也破了這個案子：${'★'.repeat(pc.s)}</div>`:`<div class="small">${paN()}還沒破這個案子</div>`}
+  ${pn?`<div class="sec">💬 ${paN()}的推理</div><div class="ex" style="white-space:pre-wrap">${esc(pn.txt)}</div>`:''}
+  <div class="sec">✍️ 我的推理<small>你是怎麼想到的、哪條線索最關鍵，${paN()}也看得到</small></div>
+  <textarea id="csnote" maxlength="300" style="width:100%;height:72px;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:6px">${esc(mine)}</textarea>
+  <button class="btn" id="cssave">儲存推理</button><button class="btn" id="csagain">重新調查一次（不再給獎勵）</button>`;
+ }
+ modal(h+'<button class="btn ghost" data-a="close">關閉</button>');
+ const M=$('modal'),on=(id,f)=>{const e=M.querySelector('#'+id);if(e)e.onclick=f};
+ M.querySelectorAll('.chip[data-t]').forEach(b=>b.onclick=()=>{st.done.push(b.dataset.t);drawCase();const r=M.querySelectorAll('.ex');if(r.length)r[st.done.length-1]&&r[st.done.length-1].scrollIntoView({block:'nearest'})});
+ on('cshint',()=>{st.hint=Math.min(2,st.hint+1);drawCase()});
+ on('csans',()=>{st.stage='ans';drawCase()});on('csback',()=>{st.stage='inv';drawCase()});
+ M.querySelectorAll('.opt[data-o]').forEach(b=>b.onclick=()=>{const o=b.dataset.o;
+  if(o===c.cand[0]){st.stage='sol';finishCase(st)}else{st.wrong.push(o);toast('不是它，再查查看線索吧');st.stage='inv'}drawCase()});
+ on('cssave',()=>{const t=M.querySelector('#csnote').value.trim().slice(0,300);if(t)save.cnote[c.id]={txt:t,ts:Date.now()};else delete save.cnote[c.id];persist();toast(t?`已儲存，${paN()}會看到`:'已清除')});
+ on('csagain',()=>{CS[c.id]={id:c.id,done:[],hint:0,wrong:[],stage:'inv',ord:shuffle(c.cand),replay:1};drawCase()});
+}
+function finishCase(st){
+ const c=CASEM[st.id];st.rw='';if(save.cs[c.id]||st.replay)return;
+ const s=caseStars(st),ap=APPM[U2A[c.u]];save.cs[c.id]={s,ts:Date.now()};
+ const x=save.us[c.u]||[0,0];x[0]+=s;save.us[c.u]=x;const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+1]:[td,1];
+ const got={};for(let i=0;i<s;i++){const it=rewardItem();got[it]=(got[it]||0)+2;addInv(it,2)}
+ st.rw=`🎉 破案！${ap?`${ap.ic}${ap.nm} 經驗 +${s}　·　`:''}鎮民謝禮：${Object.keys(got).map(i=>nm(i)+'×'+got[i]).join('、')}`;
+ pushEv({k:'case',u:c.u});persist();checkLv();checkGoal();
 }
