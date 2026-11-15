@@ -22,6 +22,7 @@ cat src/qbank.js
 cat src/qbank2.js
 cat src/gen.js
 cat src/coop.js
+cat src/lessons.js
 echo "// @@DATA_END"
 cat src/app.js
 echo "</script>"

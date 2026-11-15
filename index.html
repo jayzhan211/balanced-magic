@@ -170,7 +170,7 @@ table.tally td.n{color:var(--bad);font-weight:700}
 <script>window.__FB_CONFIG={ "apiKey": "AIzaSyB23R-w82cFQbcWzJERVaL7c1DTonpCdlU", "authDomain": "balanced-magic.firebaseapp.com", "projectId": "balanced-magic", "storageBucket": "balanced-magic.firebasestorage.app", "messagingSenderId": "493178778518", "appId": "1:493178778518:web:0f329d8250cc6b6d15e3b7" };</script>
 <script>
 const PAIR='7NagGHeso22QC5bBCStwkiGO';
-const APPV='89b29f13';
+const APPV='461be48f';
 // @@DATA_START
 // ===================== 物質 =====================
 // id: [名稱, 化學式, 顏色, 說明, 採集地(n 北方礦山 / s 南方海岸 / b 兩地皆有 / 空=只能合成)]
@@ -1129,6 +1129,111 @@ const STORY={
  a10:['香香一進門就說：「老師，你身上有醋酸乙酯的味道。」','「酒和醋在硫酸裡會變成果香，這叫酯化！」','香香做出了第一塊肥皂，泡泡裡有淡淡的橄欖香。','「柳樹皮的苦，原來可以變成阿斯匹靈……」香香若有所思。','畢業典禮。香香為兩位老師各調了一瓶專屬的香水。','香香在藥局工作，鎮上的人頭痛時都會去找她。','「每一種香味背後，都有一個官能基。每一段回憶背後，都有兩位老師。」'],
 };
 const BADGE=l=>l>=7?'👑':l>=5?'🎓':l>=3?'🎒':'';
+// ===================== 📖 講堂：易懂的概念教學 =====================
+// 每章：u 對應題庫單元；c 卡片 [標題, 內容]；q 小練習 [題目, [正解, 錯1, 錯2, 錯3], 解析]
+const LESSONS=[
+{id:'eq',u:'化學平衡',ic:'⚖️',t:'勒沙特列原理：被打擾就往回推',c:[
+ ['💡 一句話','平衡被外界「打擾」時，會往<b>抵消這個打擾</b>的方向移動。加東西，它就想把那個東西用掉；拿走東西，它就想再做出來。'],
+ ['🏠 生活例子','冷氣設 26°C，房間一熱，冷氣就更用力把溫度拉回來。平衡也一樣：加熱一個放熱反應，平衡就往<b>吸熱</b>（逆向）那邊跑，想把多的熱吃掉。<br><br>汽水打開會冒泡：瓶內壓力突然變小，CO₂(aq) ⇌ CO₂(g) 往產生氣體那邊移動，想把壓力補回來。'],
+ ['🚀 真實世界','<b>哈柏法製氨</b> N₂ + 3H₂ ⇌ 2NH₃（放熱）：左邊 4 莫耳氣體、右邊 2 莫耳，所以用<b>高壓</b>推向氨。照理低溫產率較高，但太慢，所以工廠用約 400–500°C 加鐵觸媒，在「產率」和「速度」之間取捨。全世界的氮肥都靠它。<br><br>登山到高海拔，氧氣分壓下降，血紅素和氧的結合平衡往釋放的方向偏；身體幾週後會多造紅血球來適應。'],
+ ['⚠️ 考試陷阱','• <b>觸媒不會移動平衡</b>，只會讓平衡更快達到。<br>• 加入<b>純固體或純液體</b>不會移動平衡（不出現在 K 裡）。<br>• <b>K 只隨溫度改變</b>。改濃度、壓力，K 不變，是 Q 暫時偏離 K。<br>• 定容下加入不參與反應的鈍氣：總壓變大，但各氣體分壓不變 → <b>不移動</b>。'],
+ ['🧠 記法','先算 Q 跟 K 比：<b>Q &lt; K</b>，產物太少 → 往右；<b>Q &gt; K</b>，產物太多 → 往左。勒沙特列只是這件事的直覺版。']],
+ q:[['N₂ + 3H₂ ⇌ 2NH₃ 為放熱反應。下列哪個改變會提高 NH₃ 的平衡產量？',['增加壓力（縮小體積）','加入鐵觸媒','升高溫度','定容下加入氬氣'],'左邊 4 莫耳氣體、右邊 2 莫耳，加壓往氣體莫耳數少的右邊移動。觸媒不移動平衡；升溫會往吸熱的逆向；定容加鈍氣分壓不變。'],
+  ['對一個已達平衡的反應升高溫度，下列何者一定會改變？',['平衡常數 K','反應物的莫耳數一定增加','觸媒的用量','Q 一定變成 0'],'K 只跟溫度有關，溫度一變 K 就變（吸熱反應 K 變大，放熱反應 K 變小）。'],
+  ['某反應此刻 Q = 5、K = 20，反應會？',['往正向（生成物方向）進行','往逆向進行','已達平衡','無法判斷'],'Q < K 表示生成物還太少，反應往右進行直到 Q = K。']]},
+
+{id:'buf',u:'酸鹼',ic:'🧪',t:'緩衝溶液：血液 pH 為什麼不會亂掉',c:[
+ ['💡 一句話','緩衝溶液＝<b>弱酸＋它的共軛鹼</b>（或弱鹼＋共軛酸）。加酸，共軛鹼把 H⁺ 接走；加鹼，弱酸把 OH⁻ 中和掉，所以 pH 變化很小。'],
+ ['🏠 生活例子','像一個有兩個守門員的球門：一個專門擋酸、一個專門擋鹼。只要兩個守門員都還有體力（兩種成分都還夠多），球就很難進。'],
+ ['🚀 真實世界','人的血液 pH 維持在 <b>7.35–7.45</b>，主要靠碳酸氫根緩衝：CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻。<br><br>過度換氣（喘太快）把 CO₂ 呼出太多 → 平衡往左 → H⁺ 變少 → <b>呼吸性鹼中毒</b>，手腳發麻。所以對著紙袋呼吸（吸回 CO₂）曾是常見的處置。肺和腎就是在調這個平衡。'],
+ ['⚠️ 考試陷阱','• Henderson–Hasselbalch：<b>pH = pKa + log([A⁻]/[HA])</b>。[A⁻] = [HA] 時 pH = pKa。<br>• 緩衝能力最好的範圍大約是 <b>pKa ± 1</b>。<br>• 稀釋緩衝溶液，比值不變，pH 幾乎不變（但緩衝容量變小）。<br>• <b>強酸＋它的鹽</b>（如 HCl＋NaCl）不是緩衝溶液。<br>• 弱酸加一半當量的強鹼，也會形成緩衝，此時 pH = pKa（滴定的半當量點）。'],
+ ['🧠 記法','要配 pH 5 的緩衝，就找 pKa 接近 5 的弱酸（例如醋酸，pKa ≈ 4.76）。']],
+ q:[['下列哪一組可以配成緩衝溶液？',['CH₃COOH 與 CH₃COONa','HCl 與 NaCl','NaOH 與 NaCl','HNO₃ 與 KNO₃'],'緩衝需要弱酸與其共軛鹼。醋酸是弱酸、醋酸根是它的共軛鹼；其他組都是強酸或強鹼配它的鹽。'],
+  ['某弱酸 pKa = 4.8，緩衝溶液中 [A⁻]/[HA] = 10，pH 約為？',['5.8','3.8','4.8','14'],'pH = pKa + log 10 = 4.8 + 1 = 5.8。'],
+  ['一個人過度換氣、呼出大量 CO₂，血液會？',['pH 上升（偏鹼）','pH 下降（偏酸）','pH 不變','HCO₃⁻ 變成強酸'],'CO₂ 減少，CO₂ + H₂O ⇌ H⁺ + HCO₃⁻ 往左移，H⁺ 減少，pH 上升，即呼吸性鹼中毒。']]},
+
+{id:'redox',u:'氧化還原',ic:'🔄',t:'氧化還原：電子去哪裡了',c:[
+ ['💡 一句話','<b>失去電子＝氧化</b>，<b>得到電子＝還原</b>，兩件事一定同時發生。氧化數上升的被氧化，下降的被還原。'],
+ ['🏠 生活例子','暖暖包裡是鐵粉：撕開接觸空氣，鐵被氧氣氧化（生鏽）放出熱。生鏽和暖暖包是同一個反應，只是暖暖包用鹽、活性碳讓它變快。<br><br>切開的蘋果變褐色，是果肉裡的酚類被氧化；擠點檸檬汁（維生素 C 是還原劑）就比較慢變色。'],
+ ['🚀 真實世界','早期的酒測：橘色的二鉻酸鉀 Cr₂O₇²⁻ 把酒精氧化，自己被還原成綠色的 Cr³⁺，顏色變化就看得出喝了多少。<br><br>身體裡的粒線體，就是把食物的電子一路傳給氧氣，順便做出 ATP；這條電子傳遞鏈就是一連串的氧化還原。'],
+ ['⚠️ 考試陷阱','• <b>氧化劑自己被還原</b>，還原劑自己被氧化。名字指的是它對「別人」做的事。<br>• 過氧化物（H₂O₂、Na₂O₂）中 O 是 <b>−1</b>；OF₂ 中 O 是 <b>+2</b>。<br>• 金屬氫化物（NaH）中 H 是 <b>−1</b>。<br>• 化合物所有氧化數總和＝0；離子＝電荷數。'],
+ ['🧠 記法','<b>OIL RIG</b>：Oxidation Is Loss, Reduction Is Gain（電子）。']],
+ q:[['2Na + Cl₂ → 2NaCl 中，哪一個是氧化劑？',['Cl₂','Na','NaCl','沒有氧化劑'],'Cl 從 0 變成 −1，得到電子被還原，所以 Cl₂ 是氧化劑；Na 被氧化，是還原劑。'],
+  ['H₂O₂ 中氧的氧化數是？',['−1','−2','0','+1'],'過氧化物中 O–O 相連，每個 O 是 −1（H 是 +1，總和 0）。'],
+  ['Cr₂O₇²⁻ 中 Cr 的氧化數是？',['+6','+7','+3','+12'],'2x + 7(−2) = −2 → 2x = 12 → x = +6。']]},
+
+{id:'echem',u:'電化學',ic:'🔋',t:'電池：讓電子走外面的路',c:[
+ ['💡 一句話','把氧化和還原<b>分開在兩邊</b>，電子只能經過外部電線過去，就變成電流。<b>陽極氧化、陰極還原</b>。'],
+ ['🏠 生活例子','像兩個房間中間只開一扇門（電線）讓電子走，再開一條小走廊（鹽橋）讓離子走，維持兩邊電荷平衡。少了鹽橋，電子很快就流不動了。'],
+ ['🚀 真實世界','<b>鋰離子電池</b>：放電時鋰離子從石墨負極出來，穿過電解質進到正極（如 LiCoO₂），電子則走外部電路幫手機供電；充電時反過來推回去。這項發明拿了 2019 年諾貝爾化學獎（Goodenough、Whittingham、吉野彰）。<br><br>神經訊號也是電化學：細胞膜兩側的 Na⁺、K⁺ 濃度差形成膜電位。'],
+ ['⚠️ 考試陷阱','• 電池（賈法尼）：<b>陽極是負極</b>；電解：<b>陽極是正極</b>。但兩者都是「陽極氧化」。<br>• E°cell = E°陰極 − E°陽極（都用還原電位）。<br>• <b>E° 不隨係數倍數改變</b>（強度性質），ΔG 會。<br>• ΔG° = −nFE°：E° &gt; 0 → ΔG° &lt; 0 → 自發。<br>• 能斯特：E = E° − (0.0592/n) log Q（25°C）。'],
+ ['🧠 記法','<b>An Ox, Red Cat</b>：Anode Oxidation, Reduction Cathode。電子從陽極流向陰極。']],
+ q:[['Zn²⁺/Zn 的 E° = −0.76 V，Cu²⁺/Cu 的 E° = +0.34 V。鋅銅電池的 E°cell 是？',['1.10 V','0.42 V','−1.10 V','0.26 V'],'銅被還原（陰極）、鋅被氧化（陽極）：0.34 − (−0.76) = 1.10 V。'],
+  ['在賈法尼電池中，下列敘述何者正確？',['電子由陽極經外電路流向陰極','陽極發生還原','陰極是負極','鹽橋讓電子通過'],'陽極氧化放出電子，經外電路到陰極。鹽橋走的是離子，不是電子。'],
+  ['把半反應的係數全部乘以 2，下列何者不變？',['標準電位 E°','ΔG°','轉移的電子數 n','反應的總能量'],'E° 是強度性質，不隨係數改變；ΔG° = −nFE° 隨 n 加倍。']]},
+
+{id:'thermo',u:'熱化學',ic:'🔥',t:'ΔG：會不會發生 ≠ 多快發生',c:[
+ ['💡 一句話','<b>ΔG = ΔH − TΔS</b>。ΔG &lt; 0 就是自發，代表「會往這個方向走」，但<b>完全不代表多快</b>。'],
+ ['🏠 生活例子','房間會自己變亂（熵增加），不會自己變整齊；要整理就得花力氣。<br><br>冰在室溫會融化：融化吸熱（ΔH &gt; 0，不利），但液體更亂（ΔS &gt; 0，有利），溫度夠高時 TΔS 贏過 ΔH，所以 0°C 以上自發融化。'],
+ ['🚀 真實世界','<b>鑽石其實會自發變成石墨</b>（ΔG &lt; 0），只是能障太高，慢到人類壽命看不到。這就是「熱力學說會、動力學說慢」。<br><br>身體把不自發的反應（例如做蛋白質）跟 <b>ATP 水解</b>（ΔG°′ ≈ −30.5 kJ/mol）綁在一起，總 ΔG &lt; 0 就能發生。這叫反應偶聯。'],
+ ['⚠️ 考試陷阱','四種組合：<br>• ΔH &lt; 0、ΔS &gt; 0：<b>任何溫度</b>都自發<br>• ΔH &gt; 0、ΔS &lt; 0：任何溫度都不自發<br>• ΔH &lt; 0、ΔS &lt; 0：<b>低溫</b>自發<br>• ΔH &gt; 0、ΔS &gt; 0：<b>高溫</b>自發<br>另外：ΔG° = −RT ln K，K &gt; 1 ↔ ΔG° &lt; 0。轉折溫度 T = ΔH/ΔS（單位要統一，ΔS 常是 J，ΔH 常是 kJ）。'],
+ ['🧠 記法','ΔH 是「想不想」（放熱比較想），ΔS 是「亂不亂」（越亂越想），T 決定亂度有多重要。']],
+ q:[['某反應 ΔH < 0、ΔS < 0，下列敘述何者正確？',['低溫時自發','任何溫度都自發','高溫時自發','任何溫度都不自發'],'ΔG = ΔH − TΔS：T 小時 −TΔS 這項（正值）影響小，ΔH 的負值主導，所以低溫自發。'],
+  ['鑽石轉成石墨 ΔG < 0，但鑽石可以保存很久，原因是？',['活化能很高，反應極慢','其實 ΔG > 0','鑽石的熵比較大','需要觸媒才會自發'],'ΔG 只決定方向，速度由活化能決定（動力學）。'],
+  ['某反應 ΔG° < 0，則其平衡常數 K？',['大於 1','小於 1','等於 1','等於 0'],'ΔG° = −RT ln K，ΔG° < 0 → ln K > 0 → K > 1。']]},
+
+{id:'imf',u:'分子間力',ic:'🧲',t:'分子間力：沸點高低的祕密',c:[
+ ['💡 一句話','沸騰時拆的是<b>分子之間</b>的吸引力，不是分子內的共價鍵。分子間力越強，沸點越高。強弱大致：<b>離子 &gt; 氫鍵 &gt; 偶極–偶極 &gt; 分散力</b>（同大小分子比較時）。'],
+ ['🏠 生活例子','水（H₂O，分子量 18）是液體，但比它重的 H₂S（34）在室溫是氣體，差別就在水有氫鍵。<br><br>冰浮在水上，也是因為氫鍵把冰撐成比較空曠的結構，密度比液態水小。湖面先結冰，下面的魚才活得下來。'],
+ ['🚀 真實世界','<b>壁虎</b>能倒掛在玻璃上，靠的是腳上幾百萬根細毛與表面之間的<b>分散力</b>（凡得瓦力）。單一個很弱，數量多就很強，科學家據此做出乾式黏膠。<br><br>DNA 雙股之間靠氫鍵配對（A–T 兩個、G–C 三個），所以 G–C 比例高的 DNA 比較難解開、熔點比較高。'],
+ ['⚠️ 考試陷阱','• 氫鍵要 H 直接接在 <b>N、O、F</b> 上。CH₄ 沒有氫鍵；CH₃OH 有。<br>• 分散力存在於<b>所有</b>分子之間；分子越大、表面積越大，分散力越強（F₂ 氣、Br₂ 液、I₂ 固）。<br>• 同分子量時，直鏈比支鏈沸點高（接觸面積大）。<br>• 分子有極性鍵不一定是極性分子（CO₂、CCl₄ 對稱 → 非極性）。'],
+ ['🧠 記法','比沸點三步：①有沒有離子或氫鍵 ②比分子大小（分散力）③比形狀和極性。']],
+ q:[['下列何者沸點最高？',['H₂O','H₂S','H₂Se','CH₄'],'H₂O 有氫鍵，雖然分子量最小，沸點卻最高（100°C）。'],
+  ['下列哪一個分子之間可以形成氫鍵？',['CH₃OH','CH₄','CH₃Cl','CH₃OCH₃'],'氫鍵需要 H 直接接在 N、O、F 上。甲醇有 O–H；二甲醚的 O 上沒有 H，分子之間不能互相形成氫鍵。'],
+  ['F₂ 是氣體、I₂ 是固體，主要原因是？',['I₂ 分子較大，分散力較強','I₂ 有氫鍵','I₂ 是極性分子','F₂ 的共價鍵比較弱'],'兩者都是非極性分子，只有分散力；分子越大電子雲越容易被極化，分散力越強。']]},
+
+{id:'chiral',u:'有機・異構',ic:'🤲',t:'手性：左手和右手不一樣',c:[
+ ['💡 一句話','一個碳接著<b>四個不同的基團</b>，就是手性中心。它和它的鏡像像左右手，<b>無法重疊</b>，這一對叫鏡像異構物（enantiomers）。'],
+ ['🏠 生活例子','左手套戴不進右手。分子也一樣：身體的酵素和受體本身就是「有手性的手套」，所以一對鏡像分子在身體裡的效果可以完全不同。<br><br>香芹酮的兩個鏡像異構物，一個聞起來像留蘭香（綠薄荷），一個像葛縷子，鼻子分得出左右手。'],
+ ['🚀 真實世界','<b>沙利竇邁（反應停）事件</b>：1950–60 年代用來止孕吐，其中一個鏡像異構物有鎮靜效果，另一個會造成胎兒畸形，導致上萬名嬰兒受害。更麻煩的是兩者<b>在體內會互相轉換</b>，所以只吃「好的那個」也沒用。<br><br>這件事之後，藥廠必須分別研究每個鏡像異構物。現在很多藥（如 S-布洛芬、艾司西酞普蘭）都只賣單一鏡像。'],
+ ['⚠️ 考試陷阱','• 鏡像異構物的熔點、沸點、溶解度<b>都相同</b>，只差旋光方向，以及和其他手性物質的作用。<br>• <b>R/S 和 (+)/(−) 沒有對應關係</b>：R 可以是左旋也可以是右旋。<br>• <b>內消旋（meso）</b>化合物有手性中心，但分子內有對稱面，整體沒有手性、不旋光。<br>• n 個手性中心最多 2ⁿ 個立體異構物（有 meso 時會更少）。<br>• 1:1 混合叫消旋混合物，不旋光。'],
+ ['🧠 記法','判 R/S：最低優先基團朝後，1→2→3 順時針是 R（Right），逆時針是 S。']],
+ q:[['下列哪一個分子含有手性中心？',['2-丁醇 CH₃CH(OH)CH₂CH₃','2-丙醇 (CH₃)₂CHOH','乙醇','1-丁醇'],'2-丁醇的 C2 接 H、OH、CH₃、C₂H₅ 四個不同基團；2-丙醇的中心碳接了兩個 CH₃。'],
+  ['一對鏡像異構物，下列哪個性質不同？',['使平面偏振光旋轉的方向','沸點','在水中的溶解度','分子量'],'鏡像異構物在非手性環境中物理性質相同，只有旋光方向相反。'],
+  ['內消旋（meso）化合物的特徵是？',['有手性中心但分子整體沒有手性','沒有任何手性中心','一定有旋光性','是鏡像異構物的 1:1 混合物'],'meso 分子內有對稱面，兩個手性中心的效果互相抵消；1:1 混合物則叫消旋混合物。']]},
+
+{id:'sn',u:'有機・反應機構',ic:'🎯',t:'SN1 vs SN2：一步搶位，還是先空出位子',c:[
+ ['💡 一句話','<b>SN2</b>：親核基從背面進攻，同時把離去基擠走，<b>一步完成</b>。<b>SN1</b>：離去基先自己走掉，形成碳陽離子，親核基再來，<b>兩步</b>。'],
+ ['🏠 生活例子','SN2 像搶椅子：你直接從後面擠上去，原本坐著的人同時被擠下來，所以椅子周圍越空（甲基、一級碳）越好擠。<br><br>SN1 像先有人起身離開，位子空出來，誰都可以從兩邊坐上去，所以產物左右手都有（消旋）。位子空著要穩，所以三級碳陽離子最適合。'],
+ ['🚀 真實世界','身體幫 DNA 或神經傳導物質加上甲基，用的是 <b>SAM（S-腺苷甲硫胺酸）</b>：受質的親核原子從背面進攻 SAM 上的甲基，就是典型的 SN2。<br><br>很多化療藥（烷化劑，如氮芥類）也是讓 DNA 的鹼基當親核基去進攻，把 DNA 黏住，癌細胞就無法複製。'],
+ ['⚠️ 考試陷阱','• SN2：速率 = k[RX][Nu]，<b>構型反轉</b>，甲基 &gt; 1° &gt; 2°，3° 幾乎不發生；喜歡<b>極性非質子溶劑</b>（DMSO、丙酮）。<br>• SN1：速率 = k[RX]，<b>消旋化</b>，3° &gt; 2°，可能重排；喜歡<b>極性質子溶劑</b>（水、醇）。<br>• 2° 碳兩種都可能，看溶劑和親核基強弱。<br>• 強而大的鹼（如 t-BuO⁻）傾向發生<b>消去（E2）</b>，不是取代。<br>• 好的離去基是弱鹼：I⁻ &gt; Br⁻ &gt; Cl⁻ &gt; F⁻；OH⁻ 是差的離去基。'],
+ ['🧠 記法','SN<b>2</b> 的「2」：速率看<b>兩個</b>東西；SN<b>1</b> 的「1」：只看<b>一個</b>（受質）。']],
+ q:[['(CH₃)₃CBr 在水中進行取代反應，最可能的機構是？',['SN1','SN2','E2','自由基取代'],'三級碳背面擁擠，SN2 幾乎不可能；三級碳陽離子穩定，加上水是極性質子溶劑，走 SN1。'],
+  ['(R)-2-溴丁烷與 OH⁻ 進行 SN2 反應，產物是？',['(S)-2-丁醇（構型反轉）','(R)-2-丁醇','消旋的 2-丁醇','1-丁醇'],'SN2 由背面進攻，幾何構型反轉。OH 接替了 Br 的最高優先順序，其他基團順序不變，所以標示由 R 變成 S。'],
+  ['SN2 反應的速率式是？',['rate = k[RX][Nu⁻]','rate = k[RX]','rate = k[Nu⁻]','rate = k[RX]²'],'SN2 一步完成，受質和親核基都參與速率決定步驟。']]},
+
+{id:'carbonyl',u:'有機・羰基',ic:'👁️',t:'羰基：被親核基攻擊的碳',c:[
+ ['💡 一句話','C=O 中氧比較陰電性，把電子拉走，<b>羰基碳帶部分正電</b>，所以親核基會來攻擊它。醛和酮最常見的反應是<b>親核加成</b>。'],
+ ['🏠 生活例子','葡萄糖其實是一個醛，但在水中大多數時候它會「自己咬自己的尾巴」：分子另一端的 OH 進攻自己的醛基，形成環狀的<b>半縮醛</b>。我們吃的澱粉、纖維素，就是這些環連成的長鏈。'],
+ ['🚀 真實世界','<b>你現在能看見這行字</b>，靠的是羰基化學：視網膜上的 11-順-視黃醛（一個醛）與視蛋白的離胺酸胺基形成<b>亞胺（Schiff base）</b>。光一照，順式變成反式，蛋白質形狀改變，神經訊號就送出去了。<br><br>胡蘿蔔的 β-胡蘿蔔素在體內可以切成視黃醛，所以缺維生素 A 會夜盲。'],
+ ['⚠️ 考試陷阱','• 反應性：<b>醛 &gt; 酮</b>（醛的立體障礙小，羰基碳也更正）。<br>• 多倫試劑（銀鏡）、斐林試劑可以分辨<b>醛（陽性）和酮（陰性）</b>；但 α-羥基酮如果糖也會呈陽性。<br>• 醛和酮做<b>加成</b>；羧酸衍生物（酯、醯氯、醯胺）有離去基，做<b>醯基取代</b>。<br>• 醯基取代反應性：醯氯 &gt; 酸酐 &gt; 酯 &gt; 醯胺。<br>• 一級醇氧化成醛（再到羧酸）；二級醇氧化成酮；三級醇不易氧化。'],
+ ['🧠 記法','碳氧雙鍵＝「氧把電子拉走、碳變成空位」，任何帶電子的東西（Nu⁻、胺、醇、格任亞試劑）都想去碰那個碳。']],
+ q:[['多倫試劑（Tollens）可以用來區分下列哪一組？',['丙醛與丙酮','乙醇與甲醇','苯與甲苯','乙酸與乙酸乙酯'],'醛可被多倫試劑氧化，產生銀鏡；一般的酮不會。'],
+  ['醛與一級胺反應，主要產物是？',['亞胺（Schiff base）','醯胺','酯','醚'],'一級胺對羰基進行親核加成，再脫水形成 C=N 亞胺；視黃醛和視蛋白的結合就是這個反應。'],
+  ['下列羧酸衍生物，何者對親核醯基取代反應性最高？',['醯氯','醯胺','酯','酸酐'],'Cl⁻ 是最好的離去基，醯氯最活潑；醯胺的 N 會共振提供電子，最不活潑。']]},
+
+{id:'arom',u:'有機・芳香',ic:'💍',t:'芳香性：特別穩定的環',c:[
+ ['💡 一句話','一個環要有芳香性，必須同時滿足：<b>環狀、平面、每個環原子都參與共軛</b>，而且 π 電子數 = <b>4n + 2</b>（2、6、10…，休克耳規則）。'],
+ ['🏠 生活例子','苯的六個 π 電子不屬於任何一個雙鍵，而是平均分散在整個環上，像一群人手牽手圍成圈，比兩兩一對更穩。所以苯不喜歡做加成（會打斷圈圈），而是做<b>取代</b>（換掉一個 H，圈圈還在）。'],
+ ['🚀 真實世界','DNA 的四種鹼基（A、T、G、C）都是芳香雜環，平平的環可以一層層<b>疊在一起</b>（π 堆疊），讓雙股螺旋更穩。<br><br>很多藥物都有芳香環，例如阿斯匹靈、普拿疼（乙醯胺酚）。石墨烯可以看成無限延伸的芳香片，導電性極好。'],
+ ['⚠️ 考試陷阱','• 環辛四烯（8 π）<b>不是平面</b>（彎成澡盆狀），所以是非芳香。<br>• 環戊二烯陰離子（6 π）芳香；環戊二烯陽離子（4 π）反芳香。<br>• <b>吡啶</b>的 N 孤對電子不在 π 系統內，所以吡啶有鹼性；<b>吡咯</b>的 N 孤對電子在 π 系統內（湊成 6 π），所以吡咯幾乎沒有鹼性。<br>• 苯的親電取代：活化基（–OH、–NH₂、–CH₃）是<b>鄰對位</b>導向；鈍化基（–NO₂、–COOH、–CN）是<b>間位</b>導向；鹵素是鈍化但鄰對位導向。'],
+ ['🧠 記法','數 π 電子：雙鍵每個 2，環上帶負電的碳 2、帶正電的碳 0；孤對電子要看它是不是「被需要」才能湊成共軛。']],
+ q:[['下列何者具有芳香性？',['環戊二烯陰離子','環辛四烯','環丁二烯','環戊二烯陽離子'],'環戊二烯陰離子有 6 個 π 電子（4n+2，n=1），平面且完全共軛。'],
+  ['苯與 Br₂（FeBr₃ 催化）反應，主要產物是？',['溴苯（取代）','1,2-二溴環己二烯（加成）','環己烷','沒有反應'],'苯做親電芳香取代，保住芳香環；加成會破壞芳香性。'],
+  ['吡咯的鹼性比吡啶弱很多，原因是？',['吡咯 N 的孤對電子參與芳香 π 系統','吡咯沒有氮原子','吡啶不是芳香化合物','吡咯是非平面分子'],'吡咯 N 的孤對電子是湊成 6 π 電子的必要部分，拿去接 H⁺ 會破壞芳香性；吡啶 N 的孤對電子在環平面上，不參與 π 系統。']]}
+];
+const LESM={};LESSONS.forEach(l=>LESM[l.id]=l);
+const U2L={};LESSONS.forEach(l=>{(U2L[l.u]=U2L[l.u]||[]).push(l.id)});
 // @@DATA_END
 // ===================== 小工具 =====================
 const $=id=>document.getElementById(id);
@@ -1166,7 +1271,7 @@ const EPOCH='2026-11-14-start';
 try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her','mb_prever_j','mb_prever_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
-function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
 const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
 const J=x=>JSON.parse(JSON.stringify(x));
@@ -1189,6 +1294,8 @@ function mergeSaves(L,C){
  const byId=(a,b,n)=>{const m={};[...(b||[]),...(a||[])].forEach(e=>{if(e&&e.id)m[e.id]=e});return Object.values(m).sort((p,q)=>(q.ts||q.t||0)-(p.ts||p.t||0)).slice(0,n)};
  o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
  o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
+ o.ls=uni(L.ls,C.ls);
+ o.lnote={};for(const k of new Set([...Object.keys(L.lnote||{}),...Object.keys(C.lnote||{})])){const x=(L.lnote||{})[k],y=(C.lnote||{})[k];o.lnote[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
  o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
  const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
  if(!o.role)o.role=oth.role||'';
@@ -1237,13 +1344,15 @@ function sanitize(d){
  const nn={};if(d.nn&&typeof d.nn==='object')for(const k in d.nn){const x=d.nn[k];if(x&&typeof x==='object')nn[clip(k,24)]={txt:clip(x.txt,80),ts:n(x.ts,0,9e15)}}
  const rs={};if(d.rs&&typeof d.rs==='object')for(const k in d.rs)if(BDM[k])rs[k]=1;
  const fl=(Array.isArray(d.fl)?d.fl:[]).slice(0,60).filter(f=>f&&Array.isArray(f.o)).map(f=>({id:clip(f.id,24),q:clip(f.q,500),o:f.o.slice(0,4).map(x=>clip(x,120)),a:n(f.a,0,3),t:clip(f.t,12),why:clip(f.why,12),note:clip(f.note,120),ts:n(f.ts,0,9e15)}));
- return{fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+ const ls={};if(d.ls&&typeof d.ls==='object')for(const k in d.ls)if(LESM[k])ls[k]=n(d.ls[k],0,9e15);
+ const ln={};if(d.ln&&typeof d.ln==='object')for(const k in d.ln){const x=d.ln[k];if(LESM[k]&&x&&typeof x==='object')ln[k]={txt:clip(x.txt,300),ts:n(x.ts,0,9e15)}}
+ return{ls,ln,fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
 }
 function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+ return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60),ls:save.ls||{},ln:save.lnote||{}};
 }
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
@@ -1348,6 +1457,7 @@ function evText(e,who,short){
   case'gift':return`寄了 ${it?nm(e.it):'?'}×${e.n} 給${who===ME()?paN():meN()}`;
   case'alv':return`和${who===ME()?paN():meN()}一起把 ${APPM[e.a]?APPM[e.a].ic+APPM[e.a].nm:'?'} 教到了 Lv${e.n}${e.n>=GRAD?'（出師）':''}`;
   case'ask':return`請教了一題${e.u?'（'+e.u+'）':''}`;
+  case'les':return`讀完講堂「${e.u&&U2L[e.u]?LESM[U2L[e.u][0]].t:'一章'}」`;
   case'nb':return`收了一題進筆記本${e.u?'（'+e.u+'）':''}`;
   case'nn':return`在筆記本留了一則筆記`;
   case'rs':return`完成了研究課題，「${b?b[3]:'?'}」可以開工了 🔬`;
@@ -1594,7 +1704,7 @@ function vGather(){
  if(!PQ)newPQ();const Q=PQ.Q,ap=APPM[U2A[Q.t]];
  h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}${Q.nb?'<span class="pill her">📒 筆記本</span>':''}</div><div class="dq">${Q.q}</div>
   ${PQ.opts.map((o,k)=>`<button class="opt ${PQ.done?(o===PQ.right?'right':k===PQ.pick?'wrong':''):''}" data-a="pans" data-v="${k}" ${PQ.done?'disabled':''}>${o} ${Q.un}</button>`).join('')}`;
- if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div><div class="small" style="text-align:center">${PQ.rw}</div>
+ if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div>${!PQ.ok&&U2L[Q.t]?`<button class="btn" data-a="lesson" data-v="${U2L[Q.t][0]}">📖 看懂這個概念：${LESM[U2L[Q.t][0]].t}</button>`:''}<div class="small" style="text-align:center">${PQ.rw}</div>
   <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="flag" ${PQ.flg?'disabled':''}>${PQ.flg?'已回報':'🚩 回報'}</button><button class="btn" style="flex:1" data-a="nbadd" ${PQ.nbd?'disabled':''}>${PQ.nbd?'已收 📒':'📒 收藏'}</button></div>`;
  h+=`</div><div class="small">今天你答了 ${(save.pday&&save.pday[0]===todayStr())?save.pday[1]:0} 題${save.qwrong.length?` · 錯題本 ${save.qwrong.length} 題（會再出現）`:''}<br>題目難度會跟著你自己的答對率調整，兩個人各自是各自的程度；不論誰答對，學徒都一樣長大。覺得有意思、容易錯的題目，按「📒 收藏」，兩個人都看得到，也可以在下面留筆記。</div>`;
  return h;
@@ -1810,6 +1920,7 @@ function apCard(a,big){const l=appLv(a.id),x=appXP(a.id),nx=ALV[l]??null,pv=ALV[
  <div class="small">${nx===null?'已經是大師了':`再一起答對 ${nx-x} 題升級`}</div></div></div>${big?`<div class="muted" style="margin-top:6px">${a.d}</div>`:`<div class="small" style="margin-top:6px;color:#7a6a52">💬 ${STORY[a.id][l-1].slice(0,38)}${STORY[a.id][l-1].length>38?'…':''}</div>`}</div>`}
 function vAcademy(){
  let h=roleCard();
+ h+=lessonList();
  h+=`<div class="sec">🎓 學徒們<small>兩個人答對的題目都算經驗，Lv${GRAD} 出師後每天會寄材料回來</small></div>`;
  APP.slice().sort((x,y)=>appXP(y.id)-appXP(x.id)).forEach(a=>h+=apCard(a));
  h+=`<button class="btn" data-a="tab" data-v="book">📘 我的學習紀錄（單元答對率、原理卡、配平過的方程式）</button>`;
@@ -1904,6 +2015,7 @@ function openHelp(){
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
  <div class="sec">每日目標</div>
+ <div class="muted">📖 <b>講堂</b>（在「🎓 學院」）：常錯概念的生活化教學，每章 1～2 分鐘。讀完做小練習，第一次讀完答對的題目算學徒經驗。最後可以寫「我的補充」，對方看得到。答錯題目時也會出現「📖 看懂這個概念」的按鈕。</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
  <div class="muted">先到「練習」選 ⚖️阿秤 或 🍋檸檸 答幾題 → 到「小鎮」看石屋需要什麼 → 去「工房」配平「石灰石 → 生石灰」→ 把材料捐給石屋。</div>
@@ -1991,6 +2103,7 @@ function act(a,v,el){
   case'lvnext':closeM();return setTimeout(showLvQ,200);
   case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
+  case'lesson':return openLesson(v);
   case'bkexp':return bkExport();
   case'bkimp':return bkImport();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
@@ -2090,6 +2203,54 @@ save.prevVisit=save.lastVisit||0;save.lastVisit=Date.now();_persist();
 snapLv();claimWork();
 render();bootIntro();
 setTimeout(initSync,0);
+
+// ===================== 📖 講堂 =====================
+// 推薦順序：自己答錯率高（且有作答紀錄）的單元排前面；沒讀過的排在讀過的前面
+function lessonScore(l){const x=save.us[l.u]||[0,0],t=x[0]+x[1];return (save.ls[l.id]?-10:0)+(t?(x[1]+1)/(t+2):.3)}
+function lessonList(){
+ const L=LESSONS.slice().sort((a,b)=>lessonScore(b)-lessonScore(a)),done=LESSONS.filter(l=>save.ls[l.id]).length;
+ let h=`<div class="sec">📖 講堂<small>用生活例子看懂常錯的概念，讀完做小練習，學徒也會長經驗（${done}/${LESSONS.length}）</small></div><div class="card">`;
+ L.forEach((l,i)=>{const x=save.us[l.u]||[0,0],t=x[0]+x[1],pr=P&&P.ls&&P.ls[l.id],pn=P&&P.ln&&P.ln[l.id],ap=APPM[U2A[l.u]];
+  h+=`<div data-a="lesson" data-v="${l.id}" style="display:flex;align-items:center;gap:10px;padding:8px 2px;cursor:pointer;${i?'border-top:1px dashed var(--line);':''}">
+   <div style="font-size:24px">${l.ic}</div><div style="flex:1"><div><b>${l.t}</b>${save.ls[l.id]?' <span class="ok">✓</span>':''}</div>
+   <div class="small">${l.u}${ap?` · ${ap.ic}${ap.nm}`:''}${t?` · 你的答對率 ${Math.round(x[0]/t*100)}%`:''}${i<3&&!save.ls[l.id]&&t&&x[1]/t>.3?' · <span class="bad">推薦</span>':''}${pr?` · ${paN()}讀過`:''}${pn?` · 💬${paN()}的補充`:''}</div></div><div>›</div></div>`});
+ return h+'</div>';
+}
+let LS=null;
+function openLesson(id){const l=LESM[id];if(!l)return;LS={id,k:0,qi:-1,pick:-1,ok:0,ord:l.q.map(q=>shuffle(q[1].slice()))};drawLesson()}
+function drawLesson(){
+ const l=LESM[LS.id],nc=l.c.length,dots=[...Array(nc+1)].map((_,i)=>`<i style="display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 2px;background:${i===Math.min(LS.k,nc)?'var(--gold)':'#e3d6b8'}"></i>`).join('');
+ let h=`<div class="small" style="text-align:center">${dots}</div><h3 style="margin-top:6px">${l.ic} ${l.t}</h3>`;
+ if(LS.k<nc){const[c,b]=l.c[LS.k];
+  h+=`<div class="sec" style="margin-top:6px">${c}</div><div style="line-height:1.75;font-size:14.5px">${b}</div>
+  <div class="row" style="margin-top:12px">${LS.k?'<button class="btn" style="flex:1" id="lsprev">← 上一張</button>':''}<button class="btn gold" style="flex:2" id="lsnext">${LS.k===nc-1?'做小練習 ✏️':'下一張 →'}</button></div>`;
+ }else if(LS.qi<l.q.length){if(LS.qi<0)LS.qi=0;const q=l.q[LS.qi],o=LS.ord[LS.qi],done=LS.pick>=0;
+  h+=`<div class="sec" style="margin-top:6px">✏️ 小練習 ${LS.qi+1}/${l.q.length}</div><div class="dq">${q[0]}</div>
+  ${o.map((x,i)=>`<button class="opt ${done?(x===q[1][0]?'right':i===LS.pick?'wrong':''):''}" data-k="${i}" ${done?'disabled':''}>${x}</button>`).join('')}
+  ${done?`<div class="ex">${o[LS.pick]===q[1][0]?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 再想想。</span>'} ${q[2]}</div><button class="btn gold" id="lsq">${LS.qi===l.q.length-1?'完成 →':'下一題 →'}</button>`:''}
+  <button class="btn ghost" id="lsback">← 回去看卡片</button>`;
+ }else{const first=!save.ls[l.id],mine=(save.lnote[l.id]||{}).txt||'',pn=P&&P.ln&&P.ln[l.id];
+  h+=`<div class="ex" style="text-align:center">小練習答對 ${LS.ok}/${l.q.length}${LS.rw?`<br>${LS.rw}`:''}</div>
+  ${pn?`<div class="sec">💬 ${paN()}的補充</div><div class="ex" style="white-space:pre-wrap">${esc(pn.txt)}</div>`:''}
+  <div class="sec">✍️ 我的補充<small>你的記法、口訣或提醒，${paN()}也看得到</small></div>
+  <textarea id="lsnote" maxlength="300" style="width:100%;height:72px;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:6px">${esc(mine)}</textarea>
+  <button class="btn" id="lssave">儲存補充</button><button class="btn" id="lsagain">再看一次</button>`;
+ }
+ modal(h+'<button class="btn ghost" data-a="close">關閉</button>');
+ const m=$('modal'),on=(id,f)=>{const e=m.querySelector('#'+id);if(e)e.onclick=f};
+ on('lsnext',()=>{LS.k++;drawLesson()});on('lsprev',()=>{LS.k--;drawLesson()});on('lsback',()=>{LS.k=0;drawLesson()});
+ on('lsagain',()=>openLesson(LS.id));
+ on('lsq',()=>{LS.qi++;LS.pick=-1;if(LS.qi>=l.q.length)finishLesson();drawLesson()});
+ m.querySelectorAll('.opt[data-k]').forEach(b=>b.onclick=()=>{if(LS.pick>=0)return;LS.pick=+b.dataset.k;if(LS.ord[LS.qi][LS.pick]===l.q[LS.qi][1][0])LS.ok++;drawLesson()});
+ on('lssave',()=>{const t=m.querySelector('#lsnote').value.trim().slice(0,300);if(t)save.lnote[l.id]={txt:t,ts:Date.now()};else delete save.lnote[l.id];persist();toast(t?`已儲存，${paN()}會看到`:'已清除補充')});
+}
+function finishLesson(){
+ const l=LESM[LS.id];if(save.ls[l.id]){LS.rw='';return}
+ // 第一次讀完：答對的小練習算學徒經驗，也算進今天一起答對的題數
+ save.ls[l.id]=Date.now();const ap=APPM[U2A[l.u]];
+ if(LS.ok){const x=save.us[l.u]||[0,0];x[0]+=LS.ok;save.us[l.u]=x;const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+LS.ok]:[td,LS.ok]}
+ LS.rw=`🎉 第一次讀完！${LS.ok&&ap?`${ap.ic}${ap.nm} 經驗 +${LS.ok}`:''}`;pushEv({k:'les',u:l.u});persist();checkLv();checkGoal();
+}
 </script>
 </body>
 </html>

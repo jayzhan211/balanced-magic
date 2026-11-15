@@ -34,7 +34,7 @@ const EPOCH='2026-11-14-start';
 try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her','mb_prever_j','mb_prever_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
-function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
 const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
 const J=x=>JSON.parse(JSON.stringify(x));
@@ -57,6 +57,8 @@ function mergeSaves(L,C){
  const byId=(a,b,n)=>{const m={};[...(b||[]),...(a||[])].forEach(e=>{if(e&&e.id)m[e.id]=e});return Object.values(m).sort((p,q)=>(q.ts||q.t||0)-(p.ts||p.t||0)).slice(0,n)};
  o.nb=byId(L.nb,C.nb,80);o.fl=byId(L.fl,C.fl,60);o.out=byId(L.out,C.out,30);
  o.nn={};for(const k of new Set([...Object.keys(L.nn||{}),...Object.keys(C.nn||{})])){const x=(L.nn||{})[k],y=(C.nn||{})[k];o.nn[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
+ o.ls=uni(L.ls,C.ls);
+ o.lnote={};for(const k of new Set([...Object.keys(L.lnote||{}),...Object.keys(C.lnote||{})])){const x=(L.lnote||{})[k],y=(C.lnote||{})[k];o.lnote[k]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
  o.claimed=[...new Set([...(L.claimed||[]),...(C.claimed||[])])].slice(-80);
  const ev={};[...(L.ev||[]),...(C.ev||[])].forEach(e=>{if(e)ev[e.k+'|'+e.t]=e});o.ev=Object.values(ev).sort((p,q)=>q.t-p.t).slice(0,24);
  if(!o.role)o.role=oth.role||'';
@@ -105,13 +107,15 @@ function sanitize(d){
  const nn={};if(d.nn&&typeof d.nn==='object')for(const k in d.nn){const x=d.nn[k];if(x&&typeof x==='object')nn[clip(k,24)]={txt:clip(x.txt,80),ts:n(x.ts,0,9e15)}}
  const rs={};if(d.rs&&typeof d.rs==='object')for(const k in d.rs)if(BDM[k])rs[k]=1;
  const fl=(Array.isArray(d.fl)?d.fl:[]).slice(0,60).filter(f=>f&&Array.isArray(f.o)).map(f=>({id:clip(f.id,24),q:clip(f.q,500),o:f.o.slice(0,4).map(x=>clip(x,120)),a:n(f.a,0,3),t:clip(f.t,12),why:clip(f.why,12),note:clip(f.note,120),ts:n(f.ts,0,9e15)}));
- return{fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
+ const ls={};if(d.ls&&typeof d.ls==='object')for(const k in d.ls)if(LESM[k])ls[k]=n(d.ls[k],0,9e15);
+ const ln={};if(d.ln&&typeof d.ln==='object')for(const k in d.ln){const x=d.ln[k];if(LESM[k]&&x&&typeof x==='object')ln[k]={txt:clip(x.txt,300),ts:n(x.ts,0,9e15)}}
+ return{ls,ln,fl,nb,nn,role:d.role==='sch'||d.role==='art'?d.role:'',rs,uc,ask,rep2:rp,pd,don,ev,out,daily:dl,dhist:dh,rep:n(d.rep,0,1e7),solved:n(d.solved,0,999),cards:n(d.cards,0,999),wname:String(d.wname||'').slice(0,12),ts:n(d.ts,0,9e15),claimed:(Array.isArray(d.claimed)?d.claimed:[]).slice(-60).map(x=>String(x).slice(0,24))};
 }
 function pub(){
  const dh={};Object.keys(save.dhist).sort().slice(-21).forEach(k=>dh[k]=save.dhist[k]);
  const uc={};for(const u in save.us)uc[u]=save.us[u][0];
  const rp={};Object.keys(save.replies).slice(-30).forEach(k=>rp[k]=save.replies[k]);
- return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60)};
+ return{ep:EPOCH,pv:3,fl:(save.fl||[]).slice(0,60),nb:save.nb.slice(0,80),nn:save.nn,role:myRole(),rs:save.rs,uc,ask:save.asks.slice(0,12),rep2:rp,pd:save.pdOk,don:save.don,ev:save.ev.slice(0,24),out:save.out.slice(0,30),daily:save.daily,dhist:dh,rep:save.rep,solved:Object.keys(save.solved).length,cards:Object.keys(save.quiz).length,claimed:save.claimed.slice(-60),ls:save.ls||{},ln:save.lnote||{}};
 }
 function scheduleSync(){if(!SY.on)return;setSt('push');clearTimeout(SY.timer);SY.timer=setTimeout(pushMine,2000)}
 async function pushMine(){
@@ -216,6 +220,7 @@ function evText(e,who,short){
   case'gift':return`寄了 ${it?nm(e.it):'?'}×${e.n} 給${who===ME()?paN():meN()}`;
   case'alv':return`和${who===ME()?paN():meN()}一起把 ${APPM[e.a]?APPM[e.a].ic+APPM[e.a].nm:'?'} 教到了 Lv${e.n}${e.n>=GRAD?'（出師）':''}`;
   case'ask':return`請教了一題${e.u?'（'+e.u+'）':''}`;
+  case'les':return`讀完講堂「${e.u&&U2L[e.u]?LESM[U2L[e.u][0]].t:'一章'}」`;
   case'nb':return`收了一題進筆記本${e.u?'（'+e.u+'）':''}`;
   case'nn':return`在筆記本留了一則筆記`;
   case'rs':return`完成了研究課題，「${b?b[3]:'?'}」可以開工了 🔬`;
@@ -462,7 +467,7 @@ function vGather(){
  if(!PQ)newPQ();const Q=PQ.Q,ap=APPM[U2A[Q.t]];
  h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}${Q.nb?'<span class="pill her">📒 筆記本</span>':''}</div><div class="dq">${Q.q}</div>
   ${PQ.opts.map((o,k)=>`<button class="opt ${PQ.done?(o===PQ.right?'right':k===PQ.pick?'wrong':''):''}" data-a="pans" data-v="${k}" ${PQ.done?'disabled':''}>${o} ${Q.un}</button>`).join('')}`;
- if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div><div class="small" style="text-align:center">${PQ.rw}</div>
+ if(PQ.done)h+=`<div class="ex">${PQ.ok?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 答錯了。</span>'} ${Q.ex}</div>${!PQ.ok&&U2L[Q.t]?`<button class="btn" data-a="lesson" data-v="${U2L[Q.t][0]}">📖 看懂這個概念：${LESM[U2L[Q.t][0]].t}</button>`:''}<div class="small" style="text-align:center">${PQ.rw}</div>
   <div class="row"><button class="btn gold" style="flex:2" data-a="pnext">下一題 →</button><button class="btn" style="flex:1" data-a="flag" ${PQ.flg?'disabled':''}>${PQ.flg?'已回報':'🚩 回報'}</button><button class="btn" style="flex:1" data-a="nbadd" ${PQ.nbd?'disabled':''}>${PQ.nbd?'已收 📒':'📒 收藏'}</button></div>`;
  h+=`</div><div class="small">今天你答了 ${(save.pday&&save.pday[0]===todayStr())?save.pday[1]:0} 題${save.qwrong.length?` · 錯題本 ${save.qwrong.length} 題（會再出現）`:''}<br>題目難度會跟著你自己的答對率調整，兩個人各自是各自的程度；不論誰答對，學徒都一樣長大。覺得有意思、容易錯的題目，按「📒 收藏」，兩個人都看得到，也可以在下面留筆記。</div>`;
  return h;
@@ -678,6 +683,7 @@ function apCard(a,big){const l=appLv(a.id),x=appXP(a.id),nx=ALV[l]??null,pv=ALV[
  <div class="small">${nx===null?'已經是大師了':`再一起答對 ${nx-x} 題升級`}</div></div></div>${big?`<div class="muted" style="margin-top:6px">${a.d}</div>`:`<div class="small" style="margin-top:6px;color:#7a6a52">💬 ${STORY[a.id][l-1].slice(0,38)}${STORY[a.id][l-1].length>38?'…':''}</div>`}</div>`}
 function vAcademy(){
  let h=roleCard();
+ h+=lessonList();
  h+=`<div class="sec">🎓 學徒們<small>兩個人答對的題目都算經驗，Lv${GRAD} 出師後每天會寄材料回來</small></div>`;
  APP.slice().sort((x,y)=>appXP(y.id)-appXP(x.id)).forEach(a=>h+=apCard(a));
  h+=`<button class="btn" data-a="tab" data-v="book">📘 我的學習紀錄（單元答對率、原理卡、配平過的方程式）</button>`;
@@ -772,6 +778,7 @@ function openHelp(){
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
  <div class="sec">每日目標</div>
+ <div class="muted">📖 <b>講堂</b>（在「🎓 學院」）：常錯概念的生活化教學，每章 1～2 分鐘。讀完做小練習，第一次讀完答對的題目算學徒經驗。最後可以寫「我的補充」，對方看得到。答錯題目時也會出現「📖 看懂這個概念」的按鈕。</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
  <div class="sec">第一次玩建議</div>
  <div class="muted">先到「練習」選 ⚖️阿秤 或 🍋檸檸 答幾題 → 到「小鎮」看石屋需要什麼 → 去「工房」配平「石灰石 → 生石灰」→ 把材料捐給石屋。</div>
@@ -859,6 +866,7 @@ function act(a,v,el){
   case'lvnext':closeM();return setTimeout(showLvQ,200);
   case'tutskip':save.tut=99;persist();toast('已略過新手任務（玩法介紹在右上角 ❓）');return render();
   case'sync':return syncPanel();
+  case'lesson':return openLesson(v);
   case'bkexp':return bkExport();
   case'bkimp':return bkImport();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
@@ -958,3 +966,51 @@ save.prevVisit=save.lastVisit||0;save.lastVisit=Date.now();_persist();
 snapLv();claimWork();
 render();bootIntro();
 setTimeout(initSync,0);
+
+// ===================== 📖 講堂 =====================
+// 推薦順序：自己答錯率高（且有作答紀錄）的單元排前面；沒讀過的排在讀過的前面
+function lessonScore(l){const x=save.us[l.u]||[0,0],t=x[0]+x[1];return (save.ls[l.id]?-10:0)+(t?(x[1]+1)/(t+2):.3)}
+function lessonList(){
+ const L=LESSONS.slice().sort((a,b)=>lessonScore(b)-lessonScore(a)),done=LESSONS.filter(l=>save.ls[l.id]).length;
+ let h=`<div class="sec">📖 講堂<small>用生活例子看懂常錯的概念，讀完做小練習，學徒也會長經驗（${done}/${LESSONS.length}）</small></div><div class="card">`;
+ L.forEach((l,i)=>{const x=save.us[l.u]||[0,0],t=x[0]+x[1],pr=P&&P.ls&&P.ls[l.id],pn=P&&P.ln&&P.ln[l.id],ap=APPM[U2A[l.u]];
+  h+=`<div data-a="lesson" data-v="${l.id}" style="display:flex;align-items:center;gap:10px;padding:8px 2px;cursor:pointer;${i?'border-top:1px dashed var(--line);':''}">
+   <div style="font-size:24px">${l.ic}</div><div style="flex:1"><div><b>${l.t}</b>${save.ls[l.id]?' <span class="ok">✓</span>':''}</div>
+   <div class="small">${l.u}${ap?` · ${ap.ic}${ap.nm}`:''}${t?` · 你的答對率 ${Math.round(x[0]/t*100)}%`:''}${i<3&&!save.ls[l.id]&&t&&x[1]/t>.3?' · <span class="bad">推薦</span>':''}${pr?` · ${paN()}讀過`:''}${pn?` · 💬${paN()}的補充`:''}</div></div><div>›</div></div>`});
+ return h+'</div>';
+}
+let LS=null;
+function openLesson(id){const l=LESM[id];if(!l)return;LS={id,k:0,qi:-1,pick:-1,ok:0,ord:l.q.map(q=>shuffle(q[1].slice()))};drawLesson()}
+function drawLesson(){
+ const l=LESM[LS.id],nc=l.c.length,dots=[...Array(nc+1)].map((_,i)=>`<i style="display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 2px;background:${i===Math.min(LS.k,nc)?'var(--gold)':'#e3d6b8'}"></i>`).join('');
+ let h=`<div class="small" style="text-align:center">${dots}</div><h3 style="margin-top:6px">${l.ic} ${l.t}</h3>`;
+ if(LS.k<nc){const[c,b]=l.c[LS.k];
+  h+=`<div class="sec" style="margin-top:6px">${c}</div><div style="line-height:1.75;font-size:14.5px">${b}</div>
+  <div class="row" style="margin-top:12px">${LS.k?'<button class="btn" style="flex:1" id="lsprev">← 上一張</button>':''}<button class="btn gold" style="flex:2" id="lsnext">${LS.k===nc-1?'做小練習 ✏️':'下一張 →'}</button></div>`;
+ }else if(LS.qi<l.q.length){if(LS.qi<0)LS.qi=0;const q=l.q[LS.qi],o=LS.ord[LS.qi],done=LS.pick>=0;
+  h+=`<div class="sec" style="margin-top:6px">✏️ 小練習 ${LS.qi+1}/${l.q.length}</div><div class="dq">${q[0]}</div>
+  ${o.map((x,i)=>`<button class="opt ${done?(x===q[1][0]?'right':i===LS.pick?'wrong':''):''}" data-k="${i}" ${done?'disabled':''}>${x}</button>`).join('')}
+  ${done?`<div class="ex">${o[LS.pick]===q[1][0]?'<span class="ok">✓ 答對了！</span>':'<span class="bad">✗ 再想想。</span>'} ${q[2]}</div><button class="btn gold" id="lsq">${LS.qi===l.q.length-1?'完成 →':'下一題 →'}</button>`:''}
+  <button class="btn ghost" id="lsback">← 回去看卡片</button>`;
+ }else{const first=!save.ls[l.id],mine=(save.lnote[l.id]||{}).txt||'',pn=P&&P.ln&&P.ln[l.id];
+  h+=`<div class="ex" style="text-align:center">小練習答對 ${LS.ok}/${l.q.length}${LS.rw?`<br>${LS.rw}`:''}</div>
+  ${pn?`<div class="sec">💬 ${paN()}的補充</div><div class="ex" style="white-space:pre-wrap">${esc(pn.txt)}</div>`:''}
+  <div class="sec">✍️ 我的補充<small>你的記法、口訣或提醒，${paN()}也看得到</small></div>
+  <textarea id="lsnote" maxlength="300" style="width:100%;height:72px;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:6px">${esc(mine)}</textarea>
+  <button class="btn" id="lssave">儲存補充</button><button class="btn" id="lsagain">再看一次</button>`;
+ }
+ modal(h+'<button class="btn ghost" data-a="close">關閉</button>');
+ const m=$('modal'),on=(id,f)=>{const e=m.querySelector('#'+id);if(e)e.onclick=f};
+ on('lsnext',()=>{LS.k++;drawLesson()});on('lsprev',()=>{LS.k--;drawLesson()});on('lsback',()=>{LS.k=0;drawLesson()});
+ on('lsagain',()=>openLesson(LS.id));
+ on('lsq',()=>{LS.qi++;LS.pick=-1;if(LS.qi>=l.q.length)finishLesson();drawLesson()});
+ m.querySelectorAll('.opt[data-k]').forEach(b=>b.onclick=()=>{if(LS.pick>=0)return;LS.pick=+b.dataset.k;if(LS.ord[LS.qi][LS.pick]===l.q[LS.qi][1][0])LS.ok++;drawLesson()});
+ on('lssave',()=>{const t=m.querySelector('#lsnote').value.trim().slice(0,300);if(t)save.lnote[l.id]={txt:t,ts:Date.now()};else delete save.lnote[l.id];persist();toast(t?`已儲存，${paN()}會看到`:'已清除補充')});
+}
+function finishLesson(){
+ const l=LESM[LS.id];if(save.ls[l.id]){LS.rw='';return}
+ // 第一次讀完：答對的小練習算學徒經驗，也算進今天一起答對的題數
+ save.ls[l.id]=Date.now();const ap=APPM[U2A[l.u]];
+ if(LS.ok){const x=save.us[l.u]||[0,0];x[0]+=LS.ok;save.us[l.u]=x;const td=todayStr();save.pdOk=save.pdOk[0]===td?[td,save.pdOk[1]+LS.ok]:[td,LS.ok]}
+ LS.rw=`🎉 第一次讀完！${LS.ok&&ap?`${ap.ic}${ap.nm} 經驗 +${LS.ok}`:''}`;pushEv({k:'les',u:l.u});persist();checkLv();checkGoal();
+}
