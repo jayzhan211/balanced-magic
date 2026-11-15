@@ -34,7 +34,7 @@ const EPOCH='2026-11-14-start';
 try{if(localStorage.getItem('mb_epoch')!==EPOCH){['mb_save_j','mb_save_her','mb_bak_j','mb_bak_her','mb_prever_j','mb_prever_her'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('mb_epoch',EPOCH)}}catch(e){}
 
 // ===================== 存檔 =====================
-function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},cs:{},cnote:{},asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
+function defSave(){return{v:1,inv:{caco3:4,h2o:6,c:4,mal:2},rep:0,solved:{},miss:0,made:{},don:{},quiz:{},ev:[],out:[],claimed:[],daily:null,dhist:{},qst:[0,0],us:{},qwrong:[],qrecent:[],lastVisit:0,prevVisit:0,intro:false,svt:0,seenB:{},ls:{},lnote:{},cs:{},cnote:{},mlSeen:0,asks:[],replies:{},askSeen:{},nb:[],nn:{},nbSeen:0,role:'',rs:{},rsDay:{},focusA:[],pdOk:['',0],goalDay:'',work:{}}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY()));if(s&&s.v)return Object.assign(defSave(),s)}catch(e){}return defSave()}
 const activity=x=>((x.qst||[0,0])[0]+(x.qst||[0,0])[1])+Object.keys(x.solved||{}).length*2+Object.values(x.don||{}).reduce((t,o)=>t+Object.values(o||{}).reduce((a,b)=>a+(+b||0),0),0);
 const J=x=>JSON.parse(JSON.stringify(x));
@@ -49,7 +49,7 @@ function mergeSaves(L,C){
  o.us={};for(const u of new Set([...Object.keys(L.us||{}),...Object.keys(C.us||{})])){const x=(L.us||{})[u]||[0,0],y=(C.us||{})[u]||[0,0];o.us[u]=[mx(x[0],y[0]),mx(x[1],y[1])]}
  o.dhist={};for(const k of new Set([...Object.keys(L.dhist||{}),...Object.keys(C.dhist||{})]))o.dhist[k]=mx((L.dhist||{})[k],(C.dhist||{})[k]);
  o.qst=[mx((L.qst||[])[0],(C.qst||[])[0]),mx((L.qst||[])[1],(C.qst||[])[1])];
- for(const k of ['rep','miss','tut','nbSeen','svt','lastVisit'])o[k]=mx(L[k],C[k]);
+ for(const k of ['rep','miss','tut','nbSeen','mlSeen','svt','lastVisit'])o[k]=mx(L[k],C[k]);
  o.intro=!!(L.intro||C.intro);
  for(const k of ['goalDay'])o[k]=[L[k]||'',C[k]||''].sort().pop();
  o.work=uni(L.work,C.work);for(const k in o.work)o.work[k]=[(L.work||{})[k]||'',(C.work||{})[k]||''].sort().pop();
@@ -469,7 +469,7 @@ function vGather(){
  if(SCOPE_OPEN){h+=`<div class="row" style="margin-top:8px"><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="auto">弱點優先</button><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="g">普化學徒</button><button class="btn" style="flex:1;margin:0;padding:7px" data-a="fset" data-v="o">有機學徒</button></div>
   <div class="small" style="margin:10px 0 4px">或勾選想教的學徒（每位負責幾個單元）</div><div class="inv">${APP.map(chipA).join('')}</div>`}
  h+=`<div style="margin-top:8px">${goalBar()}</div></div>`;
- const nw=nbNew();if(nw)h+=`<div class="banner" data-a="tab" data-v="nbk" style="cursor:pointer">📒 筆記本有 ${nw} 則${paN()}新寫的東西 →</div>`;
+ {const ml=moleMail();if(ml.length)h+=`<div class="banner" data-a="mole" style="cursor:pointer;display:flex;align-items:center;gap:8px">${moleIcon(34,true)}<span>莫耳叼著 ${ml.length} 封信跑來了：${paN()}有新消息 →</span></div>`}
  if(!PQ)newPQ();const Q=PQ.Q,ap=APPM[U2A[Q.t]];
  h+=`<div class="card"><div class="small">${ap?`${ap.ic} ${ap.nm}的課　`:''}<span class="pill">${Q.t}</span><span class="pill">${'★'.repeat(Q.lv)}</span>${Q.qi>=0&&save.qwrong.includes(Q.qi)&&!PQ.done?'<span class="pill her">錯題複習</span>':''}${Q.nb?'<span class="pill her">📒 筆記本</span>':''}</div><div class="dq">${Q.q}</div>
   ${PQ.opts.map((o,k)=>`<button class="opt ${PQ.done?(o===PQ.right?'right':k===PQ.pick?'wrong':''):''}" data-a="pans" data-v="${k}" ${PQ.done?'disabled':''}>${o} ${Q.un}</button>`).join('')}`;
@@ -733,6 +733,7 @@ function townSVG(){
   else g+=`<text x="${p[0]}" y="${p[1]}" font-size="${ul?13:9}" text-anchor="middle" opacity="${ul?.75:.35}" data-a="bld" data-v="${b[0]}" style="cursor:pointer">${ul?'🚧':'·'}</text>`});
  const nf=Math.min(FOLK.length,Math.floor(T.built*1.2)+(T.built?1:0));
  for(let i=0;i<nf;i++){const y=226+(i%3)*5,dur=14+i*3;g+=`<text x="0" y="${y}" font-size="11" class="walk" style="animation-duration:${dur}s;animation-delay:-${i*2.3}s">${FOLK[i]}</text>`}
+ g+=moleSVG(night);
  if(night&&lit)for(let i=0;i<6;i++)g+=`<circle cx="${20+i*64}" cy="222" r="2.2" fill="#ffe08a"/><circle cx="${20+i*64}" cy="222" r="7" fill="#ffe08a" opacity=".25"/>`;
  return`<div class="card" style="padding:0;overflow:hidden"><svg viewBox="0 0 360 270" style="display:block;width:100%">${g}</svg>
  <div style="padding:8px 12px" class="small">${T.built?`${T.built} 棟建築、${T.pop} 位鎮民${night?(lit?' · 夜裡街燈亮著':' · 晚上一片漆黑，鎮民希望有燈'):''}`:'還是一片空地。蓋好第一棟房子，鎮民就會搬進來。'}　點地圖上的房子或 🚧 可以打開。</div></div>`;
@@ -785,6 +786,7 @@ function openHelp(){
  ・倉庫裡的東西可以點開寄給${paN()}（${n?'你在北方礦山，她在南方海岸':'你在南方海岸，他在北方礦山'}，兩邊產的原料不一樣）。</div>
 
  <div class="sec">每日目標</div>
+ <div class="muted">🐾 <b>莫耳</b>：小鎮裡的鼴鼠信差（mole＝鼴鼠＝莫耳）。對方寫了筆記、補充、推理或破了案，莫耳會叼著信跑來；今天一起答對 ${GOAL} 題牠會跳舞。沒事時點牠，會講一句化學冷笑話。</div>
  <div class="muted">🔍 <b>小鎮事件簿</b>（在「🎓 學院」）：讀症狀和現場，自己選要做哪些實驗，推理出是什麼化學物質。做實驗不花材料（做超過 5 個會少一顆星，鼓勵先想再做）；沒頭緒可以按提示（會建議該做哪個實驗、再幫你刪掉兩個錯的答案），但會少星。破案後有解說和考點，還可以寫「我的推理」給對方看。</div>
  <div class="muted">📖 <b>講堂</b>（在「🎓 學院」）：常錯概念的生活化教學，每章 1～2 分鐘。讀完做小練習，第一次讀完答對的題目算學徒經驗。最後可以寫「我的補充」，對方看得到。答錯題目時也會出現「📖 看懂這個概念」的按鈕。</div>
  <div class="muted">每天兩個人合計答對 ${GOAL} 題，鎮民會送禮物給你們兩個。進度條在「練習」和「小鎮」最上面。</div>
@@ -876,6 +878,8 @@ function act(a,v,el){
   case'sync':return syncPanel();
   case'lesson':return openLesson(v);
   case'case':return openCase(v);
+  case'mole':return moleTap();
+  case'mlgo':return mailGo(v);
   case'bkexp':return bkExport();
   case'bkimp':return bkImport();
   case'syncnow':SY.last='';pushMine().then(()=>syncPanel());return;
@@ -1077,4 +1081,87 @@ function finishCase(st){
  const got={};for(let i=0;i<s;i++){const it=rewardItem();got[it]=(got[it]||0)+2;addInv(it,2)}
  st.rw=`🎉 破案！${ap?`${ap.ic}${ap.nm} 經驗 +${s}　·　`:''}鎮民謝禮：${Object.keys(got).map(i=>nm(i)+'×'+got[i]).join('、')}`;
  pushEv({k:'case',u:c.u});persist();checkLv();checkGoal();
+}
+
+// ===================== 🐾 莫耳（小鎮的鼴鼠信差） =====================
+// mole＝鼴鼠＝莫耳。幫兩個人送信：對方寫了東西、破了案，牠就叼著信來
+function moleBody(){return`<ellipse cx="0" cy="-10" rx="11" ry="12" fill="#8a6a52"/><ellipse cx="0" cy="-6" rx="7" ry="7" fill="#c4a185"/>
+ <ellipse cx="-5" cy="-21" rx="3.4" ry="2.6" fill="#bfe3f2" stroke="#5b4636" stroke-width="1"/><ellipse cx="5" cy="-21" rx="3.4" ry="2.6" fill="#bfe3f2" stroke="#5b4636" stroke-width="1"/><path d="M-1.6 -21h3.2" stroke="#5b4636" stroke-width="1"/>
+ <path d="M-6 -14q2 -2 4 0M2 -14q2 -2 4 0" stroke="#3a2a1e" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+ <circle cx="-7" cy="-10" r="1.8" fill="#f4a0a0" opacity=".75"/><circle cx="7" cy="-10" r="1.8" fill="#f4a0a0" opacity=".75"/>
+ <circle cx="0" cy="-10.5" r="2.3" fill="#ff8fa3"/><circle cx="-.7" cy="-11.2" r=".7" fill="#fff" opacity=".8"/>
+ <ellipse cx="-8" cy="-3" rx="3.2" ry="2.2" fill="#f2c4b0"/><ellipse cx="8" cy="-3" rx="3.2" ry="2.2" fill="#f2c4b0"/>`}
+function moleIcon(sz,mail){return`<svg class="moleic" width="${sz}" height="${sz}" viewBox="-16 -30 32 32"><g class="${mail?'mole-bob':''}">${moleBody()}${mail?'<text x="5" y="-16" font-size="9">✉️</text>':''}</g></svg>`}
+function moleMail(){
+ if(!P)return[];const t=save.mlSeen||0,out=[],pn=paN();
+ const nb=nbNew();if(nb)out.push(['nbk',`📒 筆記本有 ${nb} 則${pn}新寫的東西`]);
+ for(const k in P.ln)if(P.ln[k].ts>t&&P.ln[k].txt&&LESM[k])out.push(['l:'+k,`📖 ${pn}在講堂「${LESM[k].t}」寫了補充`]);
+ for(const k in P.cn)if(P.cn[k].ts>t&&P.cn[k].txt&&CASEM[k])out.push(['c:'+k,`🔍 ${pn}留下了「${CASEM[k].t}」的推理${save.cs[k]?'':'（你破案後才看得到）'}`]);
+ for(const k in P.cs)if(P.cs[k].ts>t&&CASEM[k]&&!(P.cn[k]&&P.cn[k].ts>t))out.push(['c:'+k,`🔍 ${pn}破了「${CASEM[k].t}」${'★'.repeat(P.cs[k].s)}`]);
+ return out;
+}
+const MOLE={say:'',tm:0};
+const MOLELINE=[
+ '我有 6.02×10²³ 個兄弟姊妹，\n但大家都長得一樣',
+ '鼴鼠的英文是 mole，\n所以我就是一莫耳！',
+ '我只有一隻，\n不能算一莫耳啦…',
+ '挖地道的時候，\n要記得配平喔',
+ '鈉：一碰水就爆衝。\n我：一碰水就想睡',
+ '惰性氣體都不理人，\n但我會理你',
+ '觸媒不會改變終點，\n只會讓你更快到',
+ '今天的 ΔG 是負的，\n適合自發地讀書',
+ '鑽石會變石墨，\n只是很慢很慢，跟我一樣',
+ '找不到答案的時候，\n就先數電子吧',
+ '我的鼻子是粉紅色的，\n跟酚酞在鹼裡一樣',
+ '緩衝溶液很穩，\n就像在地底很安心',
+ '氫鍵很強，\n但沒有我們的感情強',
+ '累了就休息一下，\n平衡也需要時間',
+ '答錯沒關係，\n勒沙特列也會往回推'
+];
+function moleState(){
+ if(moleMail().length)return'mail';
+ if(teamToday()>=GOAL)return'dance';
+ if(P&&P.ts&&Date.now()-P.ts>3*864e5)return'wait';
+ return'idle';
+}
+function moleSVG(night){
+ const st=moleState(),spots=[[326,216],[230,266],[90,266],[200,150],[270,152]];
+ const [x,y]=st==='idle'?spots[Math.floor(Date.now()/9e4)%spots.length]:[326,216];
+ let g=`<g data-a="mole" style="cursor:pointer" transform="translate(${x} ${y}) scale(1.15)">`;
+ g+=`<rect x="-20" y="-34" width="40" height="40" fill="transparent"/>`;
+ const cls=st==='idle'?'mole-peek':st==='dance'?'mole-dance':st==='mail'?'mole-bob':'';
+ g+=`<g class="${cls}">${moleBody()}`;
+ if(st==='mail')g+=`<text x="5" y="-17" font-size="10">✉️</text>`;
+ if(st==='dance')g+=`<text x="-20" y="-24" font-size="8">🎵</text><text x="12" y="-28" font-size="7">✨</text>`;
+ g+=`</g>`;
+ if(st==='wait')g+=`<text x="10" y="-24" font-size="8" class="mole-zz">💤</text>`;
+ g+=`<ellipse cx="0" cy="1" rx="15" ry="5" fill="${night?'#4a3a2a':'#8b6a45'}"/><circle cx="-8" cy="0" r="1.4" fill="${night?'#3a2d20':'#6e5234'}"/><circle cx="6" cy="1.5" r="1.1" fill="${night?'#3a2d20':'#6e5234'}"/>`;
+ g+=`</g>`;
+ if(MOLE.say&&Date.now()<MOLE.tm){
+  const L=MOLE.say.split('\n'),w=Math.max(...L.map(l=>l.length))*9+16,bx=Math.min(352-w,Math.max(8,x-w/2)),by=y-48-L.length*11;
+  g+=`<g data-a="mole" style="cursor:pointer"><rect x="${bx}" y="${by}" width="${w}" height="${L.length*11+10}" rx="8" fill="#fffaf0" stroke="#c9a96b" stroke-width="1"/>
+   <path d="M${x-4} ${by+L.length*11+9.5} l4 6 l4 -6" fill="#fffaf0" stroke="#c9a96b" stroke-width="1"/>
+   ${L.map((l,i)=>`<text x="${bx+8}" y="${by+15+i*11}" font-size="9" fill="#5b3f1a">${esc(l)}</text>`).join('')}</g>`;
+ }
+ return g;
+}
+function moleTap(){
+ const ml=moleMail();if(ml.length)return mailModal(ml);
+ const st=moleState();
+ MOLE.say=st==='dance'?`今天一起答對 ${GOAL} 題了！\n我要跳舞慶祝～`:st==='wait'?`${paN()}好幾天沒來了，\n我在門口等等看`:MOLELINE[Math.floor(Math.random()*MOLELINE.length)];
+ MOLE.tm=Date.now()+5000;if(TAB!=='town'){TAB='town'}render();
+ clearTimeout(MOLE.to);MOLE.to=setTimeout(()=>{if(TAB==='town'&&!$('modal').classList.contains('show'))render()},5100);
+}
+function mailModal(ml){
+ modal(`<div style="text-align:center">${moleIcon(64,true)}</div><h3 style="text-align:center">莫耳送信來了！</h3>
+ <div class="small" style="text-align:center">${paN()}最近做了這些事，點一下可以去看</div>
+ ${ml.map(([k,t])=>`<button class="opt" data-a="mlgo" data-v="${k}">${t}</button>`).join('')}
+ <button class="btn gold" data-a="mlgo" data-v="">都看過了，謝謝莫耳</button>`);
+}
+function mailGo(k){
+ save.mlSeen=Date.now();persist();closeM();
+ if(k==='nbk'){TAB='nbk';render()}
+ else if(k.startsWith('l:')){const id=k.slice(2);openLesson(id);if(save.ls[id]){LS.k=LESM[id].c.length;LS.qi=LESM[id].q.length;drawLesson()}else toast(`讀完這章，最後就看得到${paN()}的補充`)}
+ else if(k.startsWith('c:')){const id=k.slice(2);if(save.cs[id])openCase(id);else{openCase(id);toast(`先自己破案，才看得到${paN()}的推理喔`)}}
+ else{save.nbSeen=Date.now();persist();render()}
 }
